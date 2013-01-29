@@ -20,8 +20,11 @@ def cambio(Inombre):
 	for i in range(ancho):
         	for j in range(altura):
 			(a,b,c) = pixels[i,j]			
-			b = a
-			c = c
+			suma = a+b+c
+			prom = suma/3
+			a = prom
+			b = prom
+			c = prom							
 			pixels[i,j] = (a,b,c)
         im.save(nimagen)
 
