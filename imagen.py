@@ -4,6 +4,10 @@ import pygame
 from pygame.locals import *
 import sys
 import Image
+from random import *
+from pygame import *
+from numpy import*
+from math import *
 
 
 pantallalatura = 800
@@ -36,13 +40,14 @@ def main(nombreI):
 	screen.blit(imagen, (200, 0))
 	pygame.display.flip()
 	while True:
-	
-		cambio(nombreI)
-		imagen = pygame.image.load(nimagen).convert_alpha()
-		screen.blit(imagen, (200,0))
-                pygame.display.flip()
-        
 		for event in pygame.event.get():
+			if event.type == pygame.KEYDOWN:
+				if event.key == pygame.K_a:
+					print "si imprimo"
+					cambio(nombreI)
+			        	imagen = pygame.image.load(nimagen).convert_alpha()
+               				screen.blit(imagen, (200,0))
+             				pygame.display.flip()	
             		if event.type == pygame.QUIT:
                 		sys.exit()
 
