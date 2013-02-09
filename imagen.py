@@ -11,9 +11,11 @@ import numpy                 ##arreglos
 #from numpy  import *
 
 Inombre = raw_input("Dame el nombre de la imagen con extencio: ")
-nimagen = 'nimagen.jpg'
-nfiltro = 'filtro.jpg'
-difusion = 'difusion.jpg'
+nimagen = 'nimagen.png'
+nfiltro = 'filtro.png'
+difusion = 'difusion.png'
+convolun = 'convolu.png'
+
 
 min = 110.0 ##parametro definido
 max = 190.0 ##parametro definido
@@ -22,6 +24,16 @@ ancho, altura = im.size    ##  Sacar ancho y altura de la imagenpara ajustar la 
 boton = pygame.Surface((100,25)) ##para crear el rectangulo del boton
 boton.fill((100,100,255))        ##para el color del boton
 #matriz = array([1,2,1],[1,5,1],[1,2,1])
+pixels = im.load()
+matrix = ([-1,0,1],[-2,0,2],[-1,0,1])
+matriy = ([1,2,1],[0,0,0],[-1,-2,-1])
+i = 11
+j = 11
+
+q = i -1 
+w = j -1
+print pixels[i -w,j -q][0]*matrix[0][0]
+
 
 ###funcion de filtro
 def filtro(nfiltro):
@@ -85,27 +97,48 @@ def filtro(nfiltro):
 
 
 
+def convolucion(imagen):
 
-#def mascara(imagen):
-#	im = Image.open(imagne)
-#        ancho, altura = im.size
-#        pixels = im.load()
-#        altura = altura - 1
-#        ancho = ancho - 1
-#
-#	for i in range(ancho):
-#		for j in range(altura):
-#		sum = 0.0
-#		for x in range(2):
-#			for y range(2):
-#				
-#				try
-#				sum+ = algo
-#			f()0 sum
-#			exep
-#			pass
+	
+	im = Image.open(imagen)
+	ancho, altura = im.size
+	pixels = im.load()
+	altura = altura - 1
+	ancho = ancho - 1
+	for i in range(ancho):
+		for j in range(altura):
+			suma = 0
+			for x in range(2):
+				for y in range(2):
+					q = x - 1
+					w = y - 1
+					try:
+						#q = i+x-1
+						#w = j+y-1
+						sumax = (sum(pixels[i -q,j -w])/3)*matrix[x][y]
+		                                sumay = (sum(pixels[i -q,j -w])/3)*matriy[x][y]
 
-
+						#print sumax
+						#sumay = pixels[i,j][0]*matrix[x][y]
+						suma = sumax + suma + sumay
+                                        	#a = int(sum(pixels[(i+x-1),(j+y-1)])/3)
+						#b = int(matrix[x][y])
+						#c = a*b
+						
+								
+					except:
+						suma = suma + 0
+						#sumax = sumax + 0
+						#sumay = sumay + 0	
+			if suma > 255:
+				suma = 255
+			if suma < 0:
+				suma = 0
+			#else:
+			#	suma = sumax + sumay
+			pixels[i,j] = (suma,suma,suma)
+	im.save(convolun)
+	return pygame.image.load(convolun)
 
 
 
@@ -161,7 +194,7 @@ def diferencia(imagen1,imagen2):
 			prom = a+b+c/3            ##sacamos propedio de ambas
 			prom1 = a1+b1+c1/3
 			prom2 = prom - prom1      ##restamos
-			if prom2 > 115:            ##aqui asemos binarisasion
+			if prom2 > 200:            ##aqui asemos binarisasion
 				prom2 = 255
 			else:
 				prom2 = 0
@@ -200,9 +233,9 @@ def main(nombreI):
 						grisle = 'Filtro'
 					if cont == 1:
 						imagen = filtro(nfiltro) ##lo mismo que arriba pero para filtro
-						grisle = 'Difucion'
+						grisle = 'convolucion'
 					if cont == 2:
-						imagen = diferencia(nombreI,difusion) ##lo mismo de arriba para difucion
+						imagen = convolucion(difusion) ##lo mismo de arriba para difucion
 						grisle = 'normal'
 					cont = cont + 1	
 					if cont == 3:
