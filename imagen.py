@@ -11,10 +11,10 @@ import numpy                 ##arreglos
 #from numpy  import *
 
 Inombre = raw_input("Dame el nombre de la imagen con extencio: ")
-nimagen = 'nimagen.png'
-nfiltro = 'filtro.png'
-difusion = 'difusion.png'
-convolun = 'convolu.png'
+nimagen = 'nimagen.jpg'
+nfiltro = 'filtro.jpg'
+difusion = 'difusion.jpg'
+convolun = 'convolu.jpg'
 
 
 min = 110.0 ##parametro definido
@@ -25,14 +25,19 @@ boton = pygame.Surface((100,25)) ##para crear el rectangulo del boton
 boton.fill((100,100,255))        ##para el color del boton
 #matriz = array([1,2,1],[1,5,1],[1,2,1])
 pixels = im.load()
-matrix = ([-1,0,1],[-2,0,2],[-1,0,1])
-matriy = ([1,2,1],[0,0,0],[-1,-2,-1])
-i = 11
-j = 11
+#matrix = ([-1,0,1],[-2,0,2],[-1,0,1])
+#matriy = ([1,2,1],[0,0,0],[-1,-2,-1])
+matrii = ([0,0,0],[-1,0,0],[0,0,0])
+print altura
 
-q = i -1 
-w = j -1
-print pixels[i -w,j -q][0]*matrix[0][0]
+x = 2
+y = 2
+
+i=1
+j=1
+
+
+
 
 
 ###funcion de filtro
@@ -45,10 +50,6 @@ def filtro(nfiltro):
 	ancho = ancho - 1        ##esto es para los for ya que inicia en cero
 	for j in range(altura):
 		for i in range(ancho):
-	
-			##se dividio las diferentes condiciones para sus respectivos vecinos
-			##que se podria obtener
-			#esquina superior izquierda#
 			if i == 0 and j == 0:
 				
 				prom = (sum(pixels[i + 1,j])/3 + sum(pixels[i,j + 1])/3 + sum(pixels[i,j])/3)/3
@@ -96,46 +97,39 @@ def filtro(nfiltro):
 	return pygame.image.load(difusion)
 
 
-
-def convolucion(imagen):
-
-	
-	im = Image.open(imagen)
-	ancho, altura = im.size
+def convolucion(convolun):
+        im = Image.open(convolun) ##igual cargamos imagenes
+        ancho, altura = im.size  ##altura y ancho para los fors
+        pixels = list(im.getdata())       ##cargamos matriz de pixeles
 	pixels = im.load()
-	altura = altura - 1
-	ancho = ancho - 1
-	for i in range(ancho):
-		for j in range(altura):
-			suma = 0
-			for x in range(2):
-				for y in range(2):
-					q = x - 1
-					w = y - 1
+        prom = 0                 ##declaraicon de variable para promedio
+	suma = 0
+	matrix = ([-1,0,1],[-2,0,2],[-1,0,1])
+	matriy = ([1,2,1],[0,0,0],[-1,-2,-1])
+	sumax = 0
+	sumay = 0
+	#altura = altura - 1
+	#ancho = ancho - 1
+        for j in range(altura):
+                for i in range(ancho):
+			sumax = 0
+			sumay = 0
+			for y in range(3):
+				for x in range(3):
 					try:
-						#q = i+x-1
-						#w = j+y-1
-						sumax = (sum(pixels[i -q,j -w])/3)*matrix[x][y]
-		                                sumay = (sum(pixels[i -q,j -w])/3)*matriy[x][y]
-
-						#print sumax
-						#sumay = pixels[i,j][0]*matrix[x][y]
-						suma = sumax + suma + sumay
-                                        	#a = int(sum(pixels[(i+x-1),(j+y-1)])/3)
-						#b = int(matrix[x][y])
-						#c = a*b
-						
-								
+						multix = matrix[y][x]*pixels[i+y -1,j+x -1][1]
+						multiy = matriy[y][x]*pixels[i+y -1,j+x -1][1]
 					except:
-						suma = suma + 0
-						#sumax = sumax + 0
-						#sumay = sumay + 0	
+						multix = 0
+						multiy = 0
+				sumax = multix + sumax
+				sumay = multiy + sumay
+			suma = sumax + sumay
+			print suma
 			if suma > 255:
 				suma = 255
 			if suma < 0:
 				suma = 0
-			#else:
-			#	suma = sumax + sumay
 			pixels[i,j] = (suma,suma,suma)
 	im.save(convolun)
 	return pygame.image.load(convolun)
@@ -205,6 +199,8 @@ def diferencia(imagen1,imagen2):
 	im.save(nimagen)                         ##guardamos imagenes
 	return pygame.image.load(nimagen)	##enviamos imagenes cargadas
 
+#def normalizacion():
+
 
 ##funcion principla del programa
 def main(nombreI):
@@ -216,6 +212,7 @@ def main(nombreI):
 	grisle = 'Escala de grices'         ##variable para guardar las letras a mostrar y cambiar posteriormente
 	umbral = fuente.render('Umbral',1,(255,255,255)) ##para poner la fuente a variable o predefinido 
         normal = fuente.render('Normal',1,(255,255,255)) ##igual que la de arriba
+	normali = fuente.render('Normalizacion',1,(255,255,255))
 	cont = 0 ##para diferentes acciones de los botones psoteriores
 	##ciclo principal
 	while True:
@@ -255,10 +252,12 @@ def main(nombreI):
 		pantalla.fill((0,0,0))  ##borrar todo lo grafico
 		pantalla.blit(boton,(0,0)) ##colocar boton 1
                 pantalla.blit(boton,(0,30)) ##colocar boton 2
+		pantalla.blit(boton,(0,90)) ##boton 4
                 pantalla.blit(umbral,(0,30)) ##coloar letra umbral
                 pantalla.blit(boton,(0,60)) ##colocar boton 3
                 pantalla.blit(normal,(0,60)) ##colocar letra normal
 		pantalla.blit(esgris,(0,0)) ##colocar letra gris
+		pantalla.blit(normali,(0,90))
 		pantalla.blit(imagen, (100,0)) ##ppner la imagen actual
 		pygame.display.update()  ##refrescamos la pantalla con los nuevos elemntos
 
