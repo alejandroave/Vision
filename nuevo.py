@@ -175,7 +175,7 @@ def normalisacion(imagen):
 		for i in range(ancho):
 			res = (pixels[i,j][1] - c)*((b-a)/(c - d)) + 255
 
-			if res >= 100:
+			if res >= 150:
 				res = 0
 			else:
 				res = 255
@@ -207,6 +207,8 @@ def diferencia(imagen1,imagen2,min,max):
 				prom2 = 255
 			else:
 				prom2 = 0
+
+
 			a = prom2                 ##reasignamos la diferencia
 			b = prom2
 			c = prom2
@@ -228,8 +230,17 @@ def pintar(imagen):
 	visitados = []
 	vis1 = 0
 	faltan = 0
+	plista = []
+
+	mayorx = 0
+	menorx = 1000
+	menory = 1000
+	mayory = 0
+	cordenadas = []
+
 	print "pintar iniciando proceso"
 	ancho,altura,pixels,im = cargar(imagen)
+	puntos = 0
 	for i in range(ancho - 1):
 		visitados.append([])
 		for j in range(altura - 1):
@@ -280,27 +291,141 @@ def pintar(imagen):
 		g =colores[contcolor][1]
 		h =colores[contcolor][2]
 		pixels[a,b] = (r,g,h)
+		if puntos > 0:
+			plista.append((a,b))
+			
 		if len(cola) == 0:
+			puntos = puntos + 1
+			if puntos >=2:
+				tam = len(plista)
+				for i in range(tam-1):
+					for j in range(2):
+						if j == 0:
+							if plista[i][j] >= mayorx:
+								mayorx = plista[i][j]
+							if plista[i][j] <= menorx:
+								menorx = plista[i][j]
+						else: 
+							if plista[i][j] >= mayory:
+								mayory = plista[i][j]
+							if plista[i][j] <= menory:
+								menory = plista[i][j]
+				print "mayorx: ",mayorx,"menorx: ",menorx,"mayory",mayory,"menory",menory
+				diferenciax = int((mayorx + menorx)/2)
+				diferenciay = int((mayory + menory)/2)
+				cordenadas.append((diferenciax,diferenciay))
+				#pixels[menorx + diferenciax,menory + diferenciay] = (0,0,0)
+				plista = []			
 			i,j = sii(visitados,ancho,altura)
 			if i==0 and j ==0:
 				break
 			else:
 				cola.append((i,j))
 				contcolor = contcolor + 1
-
+				if contcolor == 6:
+					contcolor = 1
 		#print "faltan : ",faltan
 	im.save(pin)
 	print "finaliso"
-	return pygame.image.load(pin)
+	return pygame.image.load(pin),cordenadas
 
+def ponerlineas(imagen):
+	contcolor = 0
+	colores = ([255,0,0],[0,255,0],[0,0,255],[255,255,0],[0,255,255],[255,0,255])
+	visitados = []
+	vis1 = 0
+	faltan = 0
+	inicio = 0
+	print "lineas"
+	cola = []
+	poner = 0
+	puntos = []
+	cordenadasx = []
+	ancho,altura,pixels,im = cargar(imagen)
+	for i in range(ancho - 1):
+		visitados.append([])
+		for j in range(altura - 1):
+			visitados[i].append(None)
+			if pixels[i,j][0] == 255:
+				visitados[i][j] = 0
+				if inicio == 0:
+					cola.append((i,j))
+					inicio = 1
+				vis1 = vis1 + 1
+			else:
+				visitados[i][j] = 1
+				faltan = faltan + 1
+	print "total de visitados blancos",vis1,"negros:",faltan
+	print "valor de la cola:",len(cola)
+	while(len(cola) > 0):
+		tam = len(cola)
+                a = int(cola[tam-1][0])
+               	b = int(cola[tam-1][1])
+                visitados[a][b] = 1
+                cola.pop(tam-1)
+		#print "ola: ",pixels[a,b],"visitados[a][b]: ",visitados[a][b]
+                try:
+                        if pixels[a,b+1][2] == 255 and pixels[a,b+1][1] == 255 and pixels[a,b+1][0] == 255 and visitados[a][b+1] == 0:
+				#print "llego a pasar por aqui chngado"
+                                cola.append((a,b+1))
+                except:
+			n = 0
+		try:
+                        if pixels[a,b-1][2] == 255 and pixels[a,b-1][1] == 255 and pixels[a,b-1][0] == 255 and visitados[a][b-1] == 0:
+				#print "llego a pasar por aqui chngado"
+                                cola.append((a,b-1))
+                except:
+                        n = 0
+                try:
+                        if pixels[a+1,b][2] == 255 and pixels[a+1,b][1] == 255 and pixels[a+1,b][0] == 255 and visitados[a+1][b] == 0:
+	                        #print "llego a pasar por aqui chngado"
+                                cola.append((a+1,b))
+
+                except:
+                        n = 0
+                try:
+                        if pixels[a-1,b][2] == 255 and pixels[a-1,b][1] == 255 and pixels[a-1,b][0] == 255 and visitados[a-1][b] == 0:
+                               # print "llego a pasar por aqui chngado"         
+				cola.append((a-1,b))
+                except:
+			n = 0
+		#r =colores[contcolor][0]
+		#g =colores[contcolor][1]
+		#h =colores[contcolor][2]
+		if poner == 400:
+			pixels[a,b] = (0,0,0)
+			poner = 0
+			puntos.append((a,b))
+		poner = poner + 1
+		if len(cola) == 0:
+			for i in range(ancho -1):
+				for j in range(altura -1):
+					if visitados[i][j] == 0 and pixels[i,j][2] == 255 and pixels[i,j][1] == 255 and pixels[i,j][0] == 255:
+						cola.append((i,j))
+						break
+		#	i,j = sii(visitados,ancho,altura)
+		#	if i==0 and j ==0:
+		#		break
+		#	else:
+		#		cola.append((i,j))
+		#		contcolor = contcolor + 1
+		#		if contcolor == 6:
+		#			contcolor = 1
+		#print "faltan : ",faltan
+	im.save(pin)
+	print "finaliso"
+	return pygame.image.load(pin),puntos	
+
+#pygame.draw.circle(Surface, color, pos, radius, width=0): return Rect
 
 ##funcion principla del programa
 def main(nombreI):
 	pygame.init() ##inicialisamos python
 	ancho,altura,pixels,im = cargar(nombreI)
 	pantalla = pygame.display.set_mode((ancho + 150,altura)) ##inicialisamos pantalla
+	print "ancho:",ancho,"altura: ",altura
 	pygame.display.set_caption("Rutinas para imagenes") ##ponemos nombre
-	imagen = pygame.image.load(nnorma) ##cargamos imagen principal a mostrar
+	imagen = pygame.image.load(nombreI) ##cargamos imagen principal a mostrar
 	fuente = pygame.font.Font(None, 20) ##para la fuente de las letras
 	grisle = 'Escala de grices'         ##variable para guardar las letras a mostrar y cambiar posteriormente
 	umbral = fuente.render('Umbral',1,(255,255,255)) ##para poner la fuente a variable o predefinido 
@@ -308,6 +433,7 @@ def main(nombreI):
 	normali = fuente.render('Normalizacion',1,(255,255,255))
 	cont = 0 ##para diferentes acciones de los botones psoteriores
 	##ciclo principal
+
 	while True:
                	esgris = fuente.render(grisle,1,(255,255,255)) ##poner fuente a la letras grisle anteriormente declarada arriba
 		for event in pygame.event.get(): ##verificar si existe algun evento
@@ -319,7 +445,7 @@ def main(nombreI):
 					## adenmas de hacer escala de grises y posteriormente el mismo boton aplica filtro
 					##la tercera condicion es para aplicar la diferencia para que sala borrosa la imagen
 					if cont == 0:
-						imagen = pintar(nnorma) ##hace llamar a la funcion de escala y garda el resultado
+						imagen = escala(nombreI) ##hace llamar a la funcion de escala y garda el resultado
 						grisle = 'Filtro'
 					if cont == 1:
 						imagen = filtro(ngrises) ##lo mismo que arriba pero para filtro
@@ -332,11 +458,17 @@ def main(nombreI):
                                                 grisle = 'pintar'
                                        # cont = cont + 1
 					if cont == 4:
-						imagen = pintar(nnorma)
-						grisle = 'normal'	
+						imagen,cordenadas = pintar(nnorma)
+						print "cordenadas: ",cordenadas
+						grisle = 'puntos'
+							
 					if cont == 5:
+						imagen,puntos = ponerlineas(pin)
+						grisle = 'normal'
+					if cont == 6:
 						imagen = pygame.image.load(nombreI)
 						cont = 0
+					
 					cont = cont + 1
 				##accion para el boton de umbral
 
@@ -349,7 +481,9 @@ def main(nombreI):
 			## esto es para quitar la ventan y salir del programa
             		if event.type == pygame.QUIT:
                 		sys.exit()
-
+		valorx = 0
+		valory = 0
+		#pygame.draw.circle(pantalla, (200,200,200), (320, 90), 20, 0)
 		pantalla.fill((0,0,0))  ##borrar todo lo grafico
 		pantalla.blit(boton,(0,0)) ##colocar boton 1
                 pantalla.blit(boton,(0,30)) ##colocar boton 2
@@ -360,6 +494,21 @@ def main(nombreI):
 		pantalla.blit(esgris,(0,0)) ##colocar letra gris
 		pantalla.blit(normali,(0,90))
 		pantalla.blit(imagen, (100,0)) ##ppner la imagen actual
+		try:
+			tam = len(cordenadas)
+                	color= (200,200,200)
+                	for i in range(tam):
+                		for j in range(2):
+                                	if j == 0:
+                                        	valorx = cordenadas[i][j] + 100
+                                	if j == 1:
+						valory = cordenadas[i][j]
+						#pygame.draw.circle(pantalla,(200,200,2000),(valorx, valory,20,0)
+						#print "x:",valorx+150,"y:",cordenadas[i][j]
+				                pygame.draw.circle(pantalla, (200,200,200), (valorx, valory), 20, 0)
+		except:
+			n = 1
+                #pygame.draw.circle(pantalla, (200,200,200), (valorx, valory), 20, 0)		
 		pygame.display.update()  ##refrescamos la pantalla con los nuevos elemntos
 
 
