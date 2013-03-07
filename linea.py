@@ -33,7 +33,81 @@ def cargar(imagen):
 	pixels = im.load()
 	return ancho,altura,pixels,im
 
+def sii(visitados,ancho,altura):
+	for i in range(ancho):
+        	for j in range(altura):
+                	if visitados[j][i] == 0:
+                                return j,i
+	return 0,0
+def bordes(imagen):
+	colores = ([130,130,130],[0,255,0],[0,0,255],[255,255,0],[0,255,255],[255,0,255],[250,0,0]) ##colores
+	cola = []
+	ancho,altura,pixels,im = cargar(imagen)
+	visitados = []
+	contcolor = 0
+	for y in range(altura):
+		visitados.append([])
+		for x in range(ancho):
+			if pixels[x,y][1] == 0:
+				visitados[y].append(1)
+				#if len(cola) == 0:
+				#	cola.append((y,x))
+			else:
+				if len(cola) == 0:
+                                        cola.append((y,x))
+				visitados[y].append(0)			
+	while len(cola) > 0:
+		tam = len(cola)         ##extraemos datos de la colas
+                a = int(cola[tam-1][0]) ##obtenemos direccion a y
+		b = int(cola[tam-1][1]) ##b = x
+                visitados[a][b] = 1 ##marcamos como visitados
+                cola.pop(tam-1) ##borramos de la cola
+                try:
+                        if pixels[b,a+1][0] == pixels[b,a][0] and visitados[a][b+1] == 0:
+				#print "llego a pasar por aqui chngado"
+                                cola.append((a,b+1))
+                except:
+			pass
+		try:
+                        if pixels[b,a-1][0] == pixels[b,a][0] and visitados[a][b-1] == 0:
+				#print "llego a pasar por aqui chngado"
+                                cola.append((a,b-1))
+		except:
+                        pass
+                try:
+                        if pixels[b+1,a][0] == pixels[b,a][0] and visitados[a+1][b] == 0:
+				                        #print "llego a pasar por aqui chngado"
+                                cola.append((a+1,b))
 
+                except:
+                        pass
+                try:
+                        if pixels[b-1,a][0] == pixels[b,a][0] and visitados[a-1][b] == 0:
+                               # print "llego a pasar por aqui chngado"         
+				cola.append((a-1,b))
+                except:
+			pass
+		r =colores[contcolor][0]
+		g =colores[contcolor][1]
+		h =colores[contcolor][2]
+		pixels[b,a] = (r,g,h)
+		#if puntos > 0:
+		#	plista.append((a,b))
+		if len(cola) == 0:
+			#print "se termino la figura :P lol"
+			#print contcolor
+			j,i = sii(visitados,ancho,altura)
+                        if i==0 and j ==0:
+                                break
+                        else:
+                                cola.append((j,i))
+                                contcolor = contcolor + 1
+                                if contcolor == 7:
+                                        contcolor = 1
+	
+	im.save(pin)
+	print "finaliso"
+	return pygame.image.load(pin)
 
 ###funcion de filtro
 def filtro(imagen):
@@ -89,12 +163,12 @@ def filtro(imagen):
 
 
 ###funcion de la doctora
-def frecuentes(histo, cantidad):
+def gvotos(frecs, ancho,altura):
 	frec = list()
 	for valor in histo:
 		if valor is None:
 			continue
-		frecuencia = histo[valor]
+		frecuencia = frecs[valor]
 		acepta = False
 		if len(frec) <= cantidad:
 			acepta = True
@@ -114,8 +188,92 @@ def frecuentes(histo, cantidad):
 	return incluidos
 ##funcion de la doctora
 
-def circulos(mxy,gx,gy):
-	radio = 100
+
+def pints(mayor,rmin):
+	##ancho 1
+	##verticaul 0
+	cola = []
+        ancho,altura,pixels,im = cargar(nconvolucion)
+	cont = 0
+	aceptado = 0
+	mod = []
+        for k in range(len(mayor)):
+		x = mayor[k][1]
+		y = mayor[k][0]
+		aceptado = 0
+		for c in range(-rmin,rmin):
+			if not y == rmin:
+				if x+c >0 and x+c < ancho-1 and y+c >0 and y+c< altura-1:
+					if pixels[x+c,y][1] == 255 or pixels[x,y+c][1]==255:
+						cont = cont + 1
+					if cont > 5:
+						aceptado = 1
+						print "valor de x aceptado: ",x
+						print "valor de y acpetado: ",y
+						mod.append((y,x))
+	return aceptado,mod
+		
+	
+
+def sinradio(rmin,rmax,gx,gy,mxy):
+	print "Buscando radios"
+	r = []
+	maxa = 0
+	rmaxa = 0
+	ancho,altura,pixels,im = cargar(nconvolucion)
+	ancho1,altura1,pixels1,im1 = cargar(ngrises)
+	while rmin <= rmax:
+		frecuencias,cord,mayor = circulos(gx,gy,rmin)
+		if mayor > maxa:
+			maxa = mayor
+			print "mayor",rmin
+			if len(cord) > 0:
+				print "pasado"
+			#maxa = mayor
+			#rmaxa = rmin
+			##print maxa
+			#print "rado: ",rmin
+				aceptado,mod = pints(cord,rmin)
+				if aceptado == 1:
+					#print "radio aceptado: ",rmin
+					for xx in range(len(mod)-1):
+						 for angulo in range(360):
+							 x = mod[xx][1] + rmin*cos(angulo)
+							 y = mod[xx][0] + rmin*sin(angulo)
+							 if x > 0 and y > 0 and  y < altura -1 and  x < ancho -1:
+								 pixels1[x,y] = (0,0,255)    
+		rmin = rmin + 1
+	im1.save(ngrises)	
+	print "Termine"	
+        return pygame.image.load(ngrises)
+	#print "valor de puntos:",maxa
+	#print "valor del radio:",rmaxa
+
+def gvotos(votos,ancho,altura):
+	dim = int(ancho*altura)
+	for rango in range (1,2):
+		agregado = True
+		while agregado:
+			agregado = False
+			for y in range(altura):
+				for x in range(ancho):
+					v = votos[y][x]
+					if v > 0:
+						for dy in xrange(-rango, rango):
+							for dx in xrange(-rango, rango):
+								if not (dx == 0 and dy == 0):
+									if y + dy > 0 and y + dy < altura and x + dx > 0 and x + dx < ancho:
+										w = votos[y + dy][x + dx]
+										if w > 0:
+											if v - rango >= w:
+												votos[y][x] = v + w 
+												votos[y + dy][x + dx] = 0
+												agregado = True
+		#if rango >= 200:										
+		#	print rango										
+	return votos
+
+def circulos(gx,gy,radio):
 	tiempo = time.time()
 	CERO = 0.0001 ##para comparaciones de los angulos
         magnitud = [] ##guardamos el gradiente              
@@ -126,17 +284,16 @@ def circulos(mxy,gx,gy):
         angulo = 0.0 ##iniciamos rho como cero inicia  
         #normalisacion()
         ancho2,altura2,pixels2,im2 = cargar(nconvolucion) ##ca
-	print "inicio de rho: "
+	#print "inicio de rho: "
 	cose = 0
 	sen = 0
 	votos = list()
-	print "poniendoles todos cero"
+	#print "poniendoles todos cero"
 	for x in range(altura):
 		votos.append([])
 		for y in range(ancho):
-			votos[x].append(int(0))
-			
-	print "cchekando las frecuencias"		
+			votos[x].append(int(0))			
+	#print "cchekando las frecuencias"		
         for y in range(altura):
                 rhos.append([])                                  
                 angulos.append([])##                                
@@ -149,7 +306,7 @@ def circulos(mxy,gx,gy):
 				if pixels2[x,y][1] == 255:
 					hor = gx[y][x] ##dat                       
 					ver = gy[y][x] ##dato de             
-					mag = mxy[y][x] ##dato de gradiente combinacion
+					#mag = mxy[y][x] ##dato de gradiente combinacion
 					g = math.sqrt(hor ** 2 + ver ** 2)
 					if fabs(g) > 0.0:
 						#print "paso aqui si acao"
@@ -168,32 +325,11 @@ def circulos(mxy,gx,gy):
 						if xcm > 0 and xcm < ancho -1 and ycm > 0 and ycm < altura:
 							votos[ycm][xcm] += 1
 							pixels[xcm,ycm] = (0,255,0) 
-						
-							
-	#agregado = True		
-	#for rango in xrange (1, int(round(int((ancho + altura)/2) * 0.1))):
-	#	while agregado:		
-	#		agregado = False
-	#	for i in range(altura):
-	#		for j in range(ancho):
-	#			if pixels2[j,i][1] == 255:
-	#				v = votos[i][j]
-	#				if v > 0:
-	#					for dx in xrange(-rango,rango):
-	#						for dy in xrange(-rango,rango):
-	#							if dx != 0 and dy != 0:
-	#								if dy + j > 0 and dx + i > 0 and dy + j <= ancho -1 and dx + i < altura-1:
-	#									w = votos[dx +i][dy+j]
-	#									if w > 0:
-	#										if v - rango >= w:
-	#											votos[i][j] = v + w
-	#											votos[dx + i][dy+j] = 0
-	#											agregado = True
-
-	#print rango
+	#print "chekando vecinos"						
+	votos = gvotos(votos,ancho,altura)						
 	maximo = 0
 	suma = 0.0
-	print "sumando"
+	#print "sumando"
 	for x in range(altura):
 		for y in range(ancho):
 			v = votos[x][y]
@@ -202,29 +338,47 @@ def circulos(mxy,gx,gy):
 				maximo = v
                  
 	promedio = suma / (ancho * altura)
-	#umbral = (promedio+maximo)/1.5
-	umbral = maximo-promedio
-	print "detectando"
+	umbral = (promedio+maximo)/2.0
+	#umbral = maximo-promedio
+	#print "detectando"
 	puntosx = []
 	puntosy = []
+	mayor = 0
+	cord = []
+	mayorx = 0
+	mayory = 0
+	#print "lalalala"
 	for x in range(altura):
 		for y in range(ancho):
 			v = votos[x][y]
 			if v > umbral:
-				print "punto detectado en x:",x,"en y: ",y
-				puntosx.append(y)
-				puntosy.append(x)
-				pixels[y,x] = (255,0,0)
-				#print "valor de ancho",y,"valor de la altura",x
-	for cont in range(len(puntosx)):
-		print cont
-		for angulo in range(360):
-			x = puntosx[cont] + radio*cos(angulo)
-			y = puntosy[cont] + radio*sin(angulo)
-			pixels[x,y] = (0,0,255)
-	im.save(ngrises)			
-	print "termono"			
-	return pygame.image.load(ngrises)
+				#print "pase"
+				#print "contador: "
+				#cord.append((x,y))
+				if v > mayor:
+					mayory = y 
+					mayorx = x
+					mayor = v
+					cord.append((mayorx,mayory))
+					#mayor = v
+					#print mayor
+				#print "punto detectado en x:",x,"en y: ",y
+				#puntosx.append(y)
+				#puntosy.append(x)
+				#pixels[y,x] = (255,0,0)
+	#print mayor
+	#cord.append((mayorx,mayory))		
+	return	votos,cord,mayor		
+	       		#print "valor de ancho",y,"valor de la altura",x
+	#for cont in range(len(puntosx)):
+	#	print cont
+	#	for angulo in range(360):
+	#		x = puntosx[cont] + radio*cos(angulo)
+	#		y = puntosy[cont] + radio*sin(angulo)
+	#		pixels[x,y] = (0,0,255)
+	#im.save(ngrises)			
+	#print "termono"			
+	#return pygame.image.load(ngrises)
 
 def lineas(mxy,gx,gy):
 	tiempoi = time.time()
@@ -371,22 +525,28 @@ def convolucion(imagen):
 			sumax = 0
 			sumay = 0
 			cont = 0
+			sumx = 0
+			sumy = 0
 			if j > 0 and i > 0 and  i < altura -1 and j <ancho -1:             
 				for x in range(len(matrix[0])):
 					for y in range(len(matrix[0])):
 						try:
-							sumax += matrix[x][y] * pixels[j+y-1,i+x-1][1]
-							sumay += matriy[x][y] * pixels[j+y-1,i+x-1][1]
+							sumax = matrix[x][y] * pixels[j+y-1,i+x-1][1]
+							sumay = matriy[x][y] * pixels[j+y-1,i+x-1][1]
 						
 						except:
-							pass
-			r = int(math.sqrt(sumax**2+sumay**2)) ##calculamos gradiente mayor 
+							sumax = 0
+							sumay = 0
+							#pass
+						sumx = sumx + sumax
+						sumy = sumy + sumay
+			r = int(math.sqrt(sumx**2+sumy**2)) ##calculamos gradiente mayor 
 			#c.append(r)
 			#r = sumay			
-			gx[i].append(sumax) ##guardamos los gradientes en x
-			gy[i].append(sumay) ##guardamos los gradientes en y 
+			gx[i].append(sumx) ##guardamos los gradientes en x
+			gy[i].append(sumy) ##guardamos los gradientes en y 
 			mxy[i].append(r)    ##guardamos el resultado de los gradientes en x e y
-			if r <= 0:
+			if r < 0:
 				r = 0
 			if r > 255:
 				r = 255	
@@ -447,7 +607,7 @@ def normalisacion():
 			if j > 0 and i > 0 and  j < altura -1 and i <ancho -1:
 				#res = (pixels[i,j][1] - c)*((b-a)/(c - d)) + 255
 				res = (pixels[i,j][1] -c)*((b-a)/(c-d))+255
-				if res >= 150:
+				if res >= 100:
 					res = 0
 				else:
 					res = 255
@@ -529,7 +689,7 @@ def main(nombreI):
 					#	imagen = normalisacion(ngrises) 
 					#	grisle = 'lineas'
 					if cont == 3:
-						imagen = circulos(mxy,gx,gy)
+						imagen = sinradio(10,150,gx,gy,mxy)
                                                 #imagen = lineas(mxy,gx,gy) ##lo mismo de arriba para$
                                                 grisle = 'normal'
                                        # cont = cont + 1	
