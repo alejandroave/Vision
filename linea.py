@@ -1,5 +1,5 @@
-#!/usr/bin/env python
 
+#!/usr/bin/python
 ##importamos las librerias necesarias
 import pygame                ##interfaz
 from pygame.locals import *  ##Para los botones y presion del raton
@@ -10,6 +10,7 @@ import numpy                 ##arreglos
 import time
 import math
 from math import *
+import random
 Inombre = raw_input("Dame el nombre de la imagen con extencio: ")
 nnormal = 'nimagen.png'
 ngrises = 'filtro.png'
@@ -111,54 +112,20 @@ def bordes(imagen):
 
 ###funcion de filtro
 def filtro(imagen):
+	prom = 0
 	ancho,altura,pixels,im = cargar(imagen)
-	ancho = ancho -1
-	altura = altura -1
-	for j in range(altura):
+	for x in range(altura): ###
 		for i in range(ancho):
-			if i == 0 and j == 0:
-				prom = (sum(pixels[i + 1,j])/3 + sum(pixels[i,j + 1])/3 + sum(pixels[i,j])/3)/3
-				
-			#esquina superior derecha#
-			if i == ancho and j == 0:
-		        	prom = (sum(pixels[i,j+1])/3 + sum(pixels[i-1,j])/3 + sum(pixels[i,j])/3)/3
-				
-			#esquina inferior izquierda
-			if i == 0 and j == altura:
-                               	prom = (sum(pixels[i,j-1])/3 + sum(pixels[i+1,j])/3 + sum(pixels[i,j])/3)/3
-			#esquina inferior derecha
-			if i == altura and j == ancho:
-                                prom = (sum(pixels[i - 1,j])/3 + sum(pixels[i,j - 1])/3 + sum(pixels[i,j])/3)/3
-
-
-			##barra superior
-			if i > 0 and i < ancho and j == 0:
-				prom = (sum(pixels[i+1,j])/3 + sum(pixels[i-1,j])/3 +sum(pixels[i,j+1])/3+ sum(pixels[i,j])/3)/4
-				
-			##barra inferior
-			if i > 0 and i < ancho and j == altura:
-				prom = (sum(pixels[i -1,j])/3 + sum(pixels[i,j-1])/3 +sum(pixels[i+1,j])/3+ sum(pixels[i,j])/3)/4
-	
-			##barra lateral izquierda
-			if j >0  and j <altura  and i == 0:
-                        	prom = (sum(pixels[i+1,j])/3 + sum(pixels[i,j-1])/3 +sum(pixels[i,j +1])/3+ sum(pixels[i,j])/3)/4
-				 
-			##barra lateral derecha
-			if i == ancho and j >0 and j < altura:
-	                	prom = (sum(pixels[i - 1,j])/3 + sum(pixels[i,j-1])/3 + sum(pixels[i,j +1])/3+ sum(pixels[i,j])/3)/4
-			##cuando tiene los cuatro vecinos
-			if i > 0 and i< ancho and j>0 and j< altura:
-				prom = (sum(pixels[i,j])/3 + sum(pixels[i + 1,j])/3 + sum(pixels[i - 1,j])/3 + sum(pixels[i,j + 1])/3 + sum(pixels[i,j -1])/3)/5		
-
-			##igualamos a los pixeles
-			a = prom
-			b = prom
-			c = prom
-			##guardamos para la nueva imagen
-			pixels[i,j] = (a,b,c)
-	##guardamos la nueva imagen
+			suma = 0
+			cont = 0
+			for j in range(-1,2): ##altura
+				for k in range(-1,2): ##ancho
+					if i+k >= 0 and i+k < ancho and x+j >= 0 and x+j < altura:
+						suma += pixels[i+k,x+j][1]
+						cont += 1
+			prom = int(suma/cont)		
+			pixels[i,x] = (prom,prom,prom)
 	im.save(nfiltro)
-	##enviamos la imagen ya cargada
 	return pygame.image.load(nfiltro)
 
 
@@ -379,6 +346,30 @@ def circulos(gx,gy,radio):
 	#im.save(ngrises)			
 	#print "termono"			
 	#return pygame.image.load(ngrises)
+def frecuentes(histo, cantidad):
+    frec = list()
+    for valor in histo:
+        if valor is None:
+            continue
+        frecuencia = histo[valor]
+        acepta = False
+        if len(frec) <= cantidad:
+            acepta = True
+        if not acepta:
+            for (v, f) in frec:
+                if frecuencia > f:
+                    acepta = True
+                    break
+        if acepta:
+            frec.append((valor, frecuencia))
+            frec = sorted(frec, key = lambda tupla: tupla[1])
+            if len(frec) > cantidad:
+                frec.pop(0)
+    incluidos = list()
+    for (valor, frecuencia) in frec:
+        incluidos.append(valor)
+        print frecuencia
+    return incluidos
 
 def lineas(mxy,gx,gy):
 	tiempoi = time.time()
@@ -495,65 +486,401 @@ def lineas(mxy,gx,gy):
 	return pygame.image.load(ngrises)
 
 
+### bfs metodo
+	
+def bfs(imagen,gx,gy,g):
+	ancho,altura,pixels,im = cargar(imagen)
+	#ancho1,altura1,pixels1,im1 = cargar(Inombre)
+	pro = []
+	#pro.append((0,0))
+	visitados = []
+	pintar = []
+	visitados = []
+	cont = 1
+	total = 0
+	cord = []
+	k = 0
+
+	centerarray = []
+	print "iniciando bfs"
+	for q in range(altura):
+		visitados.append([])
+		for w in range(ancho):
+			total += 1
+			if pixels[w,q] == (255,255,255):
+				visitados[q].append(0)
+				if k == 0:
+					cord.append((w,q))
+					#print gy[q][w]
+					pro.append((w,q))
+					k = 1
+					
+			else:
+				visitados[q].append(1)
+	a,b,c = random.randint(1, 255),random.randint(1, 255),random.randint(1, 255)   		
+	while len(pro) > 0:
+		x = pro[len(pro)-1][0]
+		y = pro[len(pro)-1][1]
+		cord.append((x,y))
+		pro.pop(len(pro)-1)
+		for i in range(-1,2):
+			for j in range(-1,2):
+				if x+j >= 0 and y+i >=0 and x+j <ancho and y+i <altura:
+					if visitados[y+i][x+j] == 0:
+					#if pixels[x+j,y+i] == (0,0,0):
+						if i == 0 and j == 0:
+							cosa = 0
+						else:	
+							if pixels[x,y][1] == pixels[x+j,y+i][1]:
+								pro.append((x+j,y+i))
+								visitados[y+i][x+j] = 1
+								
+								
+		#pixels[x,y] = (a,b,c)
+								
+		pixels[x,y] = (255,255,255)
+		visitados[y][x]	= 1
+		cont += 1
+		##w es el anchocord((w,q)) , gy[q][w] 
+		if len(pro) == 0:
+			y,x = chekar(visitados,ancho,altura)
+			prom = (cont*100)/(total)
+			#print cord
+			#teta = arctan(gy /gx
+                        #m=tgteta
+			man = len(cord)
+			while i < (len(cord)):
+				hx,hy = cord[i]
+				ver = gy[hy][hx]                                                                                                      
+				hor = gx[hy][hx]  
+				
+				#if fabs(hor) < 20 or fabs(hy) <70 or (fabs(hor) < 20 and fabs(hy) < 70):
+				#if fabs()
+				if fabs(ver) > 100 or fabs(hor) < 30:
+					cord.pop(i)
+				else: 
+					i = i + 1
+					
+			tam = len(cord)
+			menorx =((cord[tam-1][0],cord[tam-1][1]))
+			mayorx = ((0,0))
+			
+			menory =((cord[tam-1][0],cord[tam-1][1]))
+                        mayory = ((0,0))
+			
+			for i in range(len(cord)):
+				if menorx[0] > cord[i][0]:
+					menorx = ((cord[i][0],cord[i][1]))
+				if mayorx[0] < cord[i][0]:
+					mayorx = ((cord[i][0],cord[i][1]))
+				if menory[1] > cord[i][1]:
+                                        menory = ((cord[i][0],cord[i][1]))
+				if mayory[1] < cord[i][1]:
+                                        mayory = ((cord[i][0],cord[i][1]))	
+			for i in range (len(cord)):
+				hx,hy = cord[i]
+				pixels[hx,hy] = (255,0,255)
+			
+			acept = 0	
+			pos = 0
+			
+			dicci = dict()
+			for k in range (700):
+				cordxx = []
+				cordyy = []
+				acept,pos = 0,0
+				while acept == 0 or pos == 0:
+					al1 = random.randint(0, tam-1)
+					al2 = random.randint(0, tam-1)
+					hx,hy = cord[al1]
+					hx1,hy1 = cord[al2]
+					m = gy[hy][hx]/gx[hy][hx]
+					m2 = gy[hy1][hx1]/gx[hy1][hx1]
+					if m != 0 and acept == 0 and m < -0.01:
+						acept = 1
+						#print "posicion de x :",hx,"posicion de y : ",hy
+						hy2 = hy
+						hx2 = hx
+						m11 = gy[hy][hx]/gx[hy][hx]
+					if m2 >= 1 and pos == 0 and acept != 0:
+						pos = 1
+						#print "posicion de x :",hx1,"posicion de y : ",hy1
+						m22 = gy[hy1][hx1]/gx[hy1][hx1]
+						break
+					
+				#print "primera pendiente : ",m11
+				for i in range (-70,70):
+					my = m11*(hx2+i - hx2) + hy2
+					if hx2+i >= 0 and my >=0 and hx2+i <ancho and my <altura:
+						pixels[hx2+i,my] = (0,255,255)
+						cordxx.append((hx2+i,my))
+		
+				#print "segunda pendiente: ",m22
+				for i in range (-70,70):
+					my = m22*(hx1+i - hx1) + hy1
+					if hx1+i >= 0 and my >=0 and hx1+i <ancho and my <altura:
+						pixels[hx1+i,my] = (255,255,0)			#my = hx+j
+						cordyy.append((hx1+i,my))
+				xxx = 0
+				yyy = 0
+				direh = 0 ##derecha ->
+				direv = 0 ##abajo 
+				control = 0
+				if (mayory[1] + menory[1])/2 >  hy2:
+					direv = 1 #va hacia arriba
+				else:
+					direv = 0 #va hacia abajp
+
+				for i in range(len(cordxx)):
+					xx,yy = cordxx[i]
+					if yy != 0:
+						if (xx,yy) in cordyy:
+							xxx = xx
+							yyy = yy
+							
+				if xxx != 0:
+					#k = 0
+					kk = 0
+					while True:
+						if direv == 0:							
+							if hx2 >= 0 and hy2-kk >=0 and hx2 < ancho and hy2-kk <altura:
+								if pixels[hx2,hy2-(kk)] != (255,255,255):
+								#if hx2 >= 0 and hy2-kk >=0 and hx2 < ancho and hy2-kk <altura:
+									pixels[hx2,hy2-kk] = (255,0,0)
+									#pass
+								else:
+									break
+							else:
+								break
+						else:
+							if hx2 >= 0 and hy2+kk >=0 and hx2 <ancho and hy2+kk <altura:
+								if pixels[hx2,hy2+(kk)] != (255,255,255):
+								#if hx2 >= 0 and hy2+kk >=0 and hx2 <ancho and hy2+kk <altura:
+									pixels[hx2,hy2+kk] = (255,0,0)
+									#pass
+								else:
+									break
+							else:
+								break
+						kk = kk + 1		
+					for i in range(-200,200):
+						if xxx+i >= 0 and yyy >=0 and xxx+i <ancho and yyy <altura:
+							pixels[xxx+i,yyy] = (255,0,255)
+							if xxx+i > hx2:
+								##acemos la votacion XD
+								if xxx+i in dicci:
+									dicci[xxx+i,yyy] += 1
+								else:
+									dicci[xxx+i,yyy] = 1
+		
+							
+			cont = 0
+			cord = []
+			if x == 0 and y == 0:
+				cosa = 1
+			else:	
+				pro.append((x,y))
+				a,b,c = random.randint(1, 255),random.randint(1, 255),random.randint(1, 255)
+				cord = []
+			#print dicci
+			dic = dicci.items()
+			mayor = dic[0][1]
+			pcx = dic[0][0]
+			for  i in range(len(dic)):
+				if mayor < dic[i][1]:
+					mayor = dic[i][1]
+					pcx = dic[i][0]
+			centerarray.append(pcx)
+			print "punto centr: ",centerarray
+			dicci = dict()
+	#print dicci(len(dicci)-1)				
+	print "termino"			
+	im.save("bfs.png")
+	#im.save("centro.png")
+	ancho1,altura1,pixels1,im1 = cargar("convolu.png")
+	for i in range(len(centerarray)):
+		x,y = centerarray[i]
+		print "x",x,"y",y
+		suma1 = 0
+		suma2 = 0
+		k = 0
+		a = 0
+		while a == 0:
+			if pixels1[x+k,y] == (255,255,255) or pixels1[x-k,y] == (255,255,255):
+				a = 1
+				print "bye bye"
+				break
+			
+			else:
+				suma1 = suma1 + 1
+				suma2 = suma2 + 1
+			k = k + 1	
+		foco1 = x + suma1/2
+		foco2 = x - suma1/2
+		for j in range (-10,10):
+			for g in range (-10,10):
+				pixels1[foco1+j,y+g] = (255,0,0)
+				pixels1[foco2+j,y+g] = (255,0,0)
+				pixels1[x+j,y+g] = (0,255,0)
+		print "foco1 : ",foco1,"foco2: ",foco2
+	im1.save("centro.png")	
+		#suma2 = suma2/2
+	#for i in range(ancho1):
+	#	for j in range(altura1):
+	return pygame.image.load("centro.png")		
+	#return pygame.image.load("bfs.png")
+### bfs metodo
+def chekar(visitados,ancho,altura):
+	for y in range(altura):
+		for x in range(ancho):
+			if visitados[y][x] == 0:
+				return y,x
+	return 0,0		
+
+
+def convex_hull(imagen):
+	ancho,altura,pixels,im = cargar(nconvolucion)
+	hulls = []
+	mx = 0
+	mex = 0
+	my = 0
+	mey = 0
+	alle = []
+	print "inicio del mugrero"
+	for i in range(altura):
+		for j in range(ancho):
+			if pixels[j, i][1] == 255:
+				#print pixels[j,i]
+				cord = bfss(j,i)
+				#print "i",i
+				for k in range(len(cord)):
+					#print "eee"					
+					cx = cord[k][0]
+					cy = cord[k][1]
+					#print "cx,",cx,"cy",cy
+					pixels[cx , cy] = (255,0,0)
+					#print "valor de qui: ",pixels[cx,cy]
+				#print "aquii"
+				mex,mx,mey,my = cord[0][0],cord[0][0],cord[0][1],cord[0][1] 
+				xxx = 0
+				yyy = 0
+				xx = 0
+				yy = 0
+				for x in range(len(cord)):
+					if cord[x][0] > mx:
+						mx = cord[x][0]
+						xxx = cord[x][1]
+					if cord[x][0] < mex:
+						mex = cord[x][0]
+						xx = cord[x][1]
+					if cord[x][1] >my:
+						my = cord[x][1]
+						yyy = cord[x][0]
+					if cord[x][1] <mey:
+						mey = cord[x][1]
+						yy = cord[x][0]
+				     	puntos = [(mx,xxx),(mex,xx),(my,yyy),(mey,yy)]
+					#puntos = proceso(mx,mex,my,mey,cord)
+					#for o in range(len(puntos)):						
+					#	alle.append((puntos[o][0],puntos[o][1]))
+	print "termino"			
+	im.save("HULLS.png", 'png')
+	print len(alle)
+	return pygame.image.load("HULLS.png"),puntos   ##regresemos la imagen cargada 
+
+def proceso(mx,mex,my,mey,cord):
+	puntos = []
+	for x in range(len(cord)):
+		cx,cy = cord[x][0],cord[x][1]
+		if cx == mx:
+			puntos.append((cx,cy))
+		if cx == mex:
+			puntos.append((cx,cy))
+		if cy == my:
+			puntos.append((cx,cy))
+		if cy == mey:
+			puntos.append((cx,cy))	
+	
+	return puntos
+
+def bfss(j,i):
+	ancho,altura,pixels,im = cargar(nconvolucion)
+	pro = []
+	pro.append((j,i))
+	visitados = []
+	pintar = []
+	visitados = []
+	cont = 1
+	total = 0
+	cord = []
+	#print "iniciando bfs"
+	for q in range(altura):
+		visitados.append([])
+		for w in range(ancho):
+			total += 1
+			if pixels[w,q] == (0,0,0):
+				visitados[q].append(0)
+			else:
+				visitados[q].append(1)
+	a,b,c = random.randint(1, 255),random.randint(1, 255),random.randint(1, 255)   		
+	while len(pro) > 0:
+		x = pro[len(pro)-1][0]
+		y = pro[len(pro)-1][1]
+		pro.pop(len(pro)-1)
+		for i in range(-1,2):
+			for j in range(-1,2):
+				if x+j >= 0 and y+i >=0 and x+j <ancho and y+i <altura:
+					if visitados[y+i][x+j] == 0:
+					#if pixels[x+j,y+i] == (0,0,0):
+						if i == 0 and j == 0:
+							cosa = 0
+						else:	
+							if pixels[x,y][1] == pixels[x+j,y+i][1]:
+								pro.append((x+j,y+i))
+								visitados[y+i][x+j] = 1
+								
+								
+		cord.append((x,y))						
+		pixels[x,y] = (a,b,c)
+		visitados[y][x]	= 1
+		cont += 1
+	return cord		
+	
+## convolucion
 def convolucion(imagen):
 	tiempoi = time.time()
 	print "Iniciando convolucion: "
-	ancho,altura,pixels,im = cargar(ngrises)
-        #prom = 0                 ##declaraicon de variable para promedio
-	#suma = 0
-	#matrix = [[-1,0,1],[-2,2,2],[-1,-1,-1]]
-	#matriy = [[-1,2,-1],[-1,2,-1],[-1,2,-1]]
+	ancho,altura,pixels,im = cargar(imagen)
 	matrix = ([-1,0,1],[-2,0,2],[-1,0,1])
         matriy = ([1,2,1],[0,0,0],[-1,-2,-1])
-	#suma = 0
-	#pix = im.load()
-
-	###imagen con las dos combinaciones
-	nuevai = Image.new("RGB", (ancho, altura))
-	npixels = nuevai.load()
-	##imagen con las dos combinaciones
-	#lis = list()
+	nueva = Image.new("RGB", (ancho, altura))
+	npixels = nueva.load()
 	gx = [] ##gradientes de x
 	gy = [] ##gradientes de y
 	mxy = [] ##la convinacon de ambos
 	for i in range(altura):
-		#c = list()
 		gx.append([])
 		gy.append([])
 		mxy.append([])
 		for j in range(ancho):
 			sumax = 0
 			sumay = 0
-			cont = 0
-			sumx = 0
-			sumy = 0
-			if j > 0 and i > 0 and  i < altura -1 and j <ancho -1:             
-				for x in range(len(matrix[0])):
-					for y in range(len(matrix[0])):
-						try:
-							sumax = matrix[x][y] * pixels[j+y-1,i+x-1][1]
-							sumay = matriy[x][y] * pixels[j+y-1,i+x-1][1]
-						
-						except:
-							sumax = 0
-							sumay = 0
-							#pass
-						sumx = sumx + sumax
-						sumy = sumy + sumay
-			r = int(math.sqrt(sumx**2+sumy**2)) ##calculamos gradiente mayor 
-			#c.append(r)
-			#r = sumay			
-			gx[i].append(sumx) ##guardamos los gradientes en x
-			gy[i].append(sumy) ##guardamos los gradientes en y 
+			for y in range(-1,2):
+				for x in range(-1,2):
+					if j+x >= 0 and j+x < ancho and i+y >=0 and i+y < altura: 
+						sumax += matrix[y+1][x+1] * pixels[j+x,i+y][1]
+						sumay += matriy[y+1][x+1] * pixels[j+x,i+y][1]			
+			r = int(math.sqrt(sumax**2+sumay**2)) ##calculamos gradiente mayor 
+			gx[i].append(sumax) ##guardamos los gradientes en x
+			gy[i].append(sumay) ##guardamos los gradientes en y 
 			mxy[i].append(r)    ##guardamos el resultado de los gradientes en x e y
 			if r < 0:
 				r = 0
 			if r > 255:
 				r = 255	
-			npixels[j, i] = (r,r,r)	
-	nuevai.save(nconvolucion)
+			npixels[j, i] = (r,r,r)
+	nueva.save(nconvolucion)		
 	tiempof = time.time()
-	normalisacion()
         print "Se tardo: ",tiempof-tiempoi,"segundos"
 	return pygame.image.load(nconvolucion),gx,gy,mxy
 
@@ -594,35 +921,36 @@ def mumbra(imagen):
 
 ##funcio para la diferenciacion entre la original y la imagen filtrada
 
-def normalisacion():
+def normalisacion(imagen,d):
+	print "inicia normalizacion"
 	tiempoi = time.time()
-	a = 0
-	b = 255
-	c = 5
-	d = 95
-	res = 0
-	ancho,altura,pixels,im = cargar(nconvolucion)
+	ancho,altura,pixels,im = cargar(imagen)
+	prom = 0
+	maxi = pixels[0,0][1]
+	mini = pixels[0,0][1]
 	for j in range(altura):
 		for i in range(ancho):
-			if j > 0 and i > 0 and  j < altura -1 and i <ancho -1:
-				#res = (pixels[i,j][1] - c)*((b-a)/(c - d)) + 255
-				res = (pixels[i,j][1] -c)*((b-a)/(c-d))+255
-				if res >= 100:
-					res = 0
+			if maxi < pixels[i,j][1]:
+				maxi = pixels[i,j][1]
+			if mini > pixels[i,j][1]:
+				mini = pixels[i,j][1]
+	div = 256.0/(maxi-mini)			
+	for j in range(altura):
+		for i in range(ancho):
+			prom = 0
+			if i > 0 and j > 0 and i < ancho-1 and j < altura-1:
+				prom = int(math.floor((pixels[i,j][1] - mini)*div))
+				pixels[i,j] = (prom,prom,prom)
+				if pixels[i,j][1] > 60:
+					pixels[i,j] = (255,255,255)
 				else:
-					res = 255
-			pixels[i,j] = (res,res,res)
-			
-	#if res > 255:
-	#res = 255
-	#if res < 0:
-	#res = 0
-			#pixels[i,j]=(res,res,res)
+					pixels[i,j] = (0,0,0)
+			else:
+				pixels[i,j] = (0,0,0)
+	print "terminino normalizacion"	
+	print "Binarisacion"
 	im.save(nconvolucion) ##guardamos imagenes
-        #tiempof = time.time()
-	#print "tiempo de normalizacion: ",tiempof - tiempoi
-        #return pygame.image.load(nconvolucion)		
-	return 				
+	return pygame.image.load(nconvolucion)
 
 
 def diferencia(imagen1,imagen2,min,max):
@@ -662,7 +990,7 @@ def main(nombreI):
 	grisle = 'Escala de grices'         ##variable para guardar las letras a mostrar y cambiar posteriormente
 	umbral = fuente.render('Umbral',1,(255,255,255)) ##para poner la fuente a variable o predefinido 
         normal = fuente.render('Normal',1,(255,255,255)) ##igual que la de arriba
-	normali = fuente.render('Normalizacion',1,(255,255,255))
+	normali = fuente.render('Conve xhull',1,(255,255,255))
 	cont = 0 ##para diferentes acciones de los botones psoteriores
 	##ciclo principal
 	#lista = []
@@ -684,16 +1012,19 @@ def main(nombreI):
 						grisle = 'convolucion'
 					if cont == 2:
 						imagen,gx,gy,mxy = convolucion(nfiltro) ##lo mismo de arriba para difucion
-						grisle = 'lineas'
-					#if cont == 3:
-					#	imagen = normalisacion(ngrises) 
-					#	grisle = 'lineas'
+						grisle = 'normalizacion'
 					if cont == 3:
-						imagen = sinradio(10,150,gx,gy,mxy)
-                                                #imagen = lineas(mxy,gx,gy) ##lo mismo de arriba para$
-                                                grisle = 'normal'
-                                       # cont = cont + 1	
+						imagen = normalisacion(nconvolucion,mxy) 
+						grisle = 'lineas'
 					if cont == 4:
+						imagen = bfs(nconvolucion,gx,gy,mxy) ##para los contornos
+                                                #imagen = lineas(mxy,gx,gy) ##lo mismo de arriba para$
+                                        #        grisle = 'cosas de mas'
+                                       # cont = cont + 1
+					if cont == 5:	
+						#imagen = lineas(mxy,gx,gy)
+						imagen = circulos(gx,gy,45)
+					if cont == 6:
 						imagen = pygame.image.load(nombreI)
 						cont = 0
 					cont = cont + 1
@@ -705,6 +1036,9 @@ def main(nombreI):
 					imagen = pygame.image.load(nombreI) ##carga la imagen normal u original
 					grisle = 'Escala de grices'
 					cont = 0
+				if 0 < cordx < 100 and 90 < cordy < 120:
+					imagen,alle = convex_hull(nconvolucion)
+
 			## esto es para quitar la ventan y salir del programa
             		if event.type == pygame.QUIT:
                 		sys.exit()
@@ -719,6 +1053,12 @@ def main(nombreI):
 		pantalla.blit(esgris,(0,0)) ##colocar letra gris
 		pantalla.blit(normali,(0,90))
 		pantalla.blit(imagen, (100,0)) ##ppner la imagen actual
+		#try:
+		#	pygame.draw.lines(pantalla, (255,0,0), False, alle)
+		#	tama = len(puntos)-1
+		#	pygame.draw.line(pantalla,(0,0,0),(puntos[0][0],puntos[0][1]),(puntos[tama][0],puntos[tam][1]))
+		#except:
+		#	pass
 		pygame.display.update()  ##refrescamos la pantalla con los nuevos elemntos
 
 
