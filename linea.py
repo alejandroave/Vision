@@ -11,6 +11,7 @@ import time
 import math
 from math import *
 import random
+from PIL import Image, ImageDraw,ImageFont
 Inombre = raw_input("Dame el nombre de la imagen con extencio: ")
 nnormal = 'nimagen.png'
 ngrises = 'filtro.png'
@@ -485,10 +486,91 @@ def lineas(mxy,gx,gy):
 	print "Tiempo estimado: ",tiempof-tiempoi
 	return pygame.image.load(ngrises)
 
-
-### bfs metodo
+####bfss para ellipse
+def bfs(imagen,earray,centro):
+	ancho,altura,pixels,im = cargar(imagen)
+	pro = []
+	#pro.append((0,0))
+	visitados = []
+	pintar = []
+	visitados = []
+	cont = 0
+	total = []
+	cord = []
+	print "iniciando bfs"
+	print len(centro)
+	print len(earray)
+	a,b,c = random.randint(1, 255),random.randint(1, 255),random.randint(1, 255)
 	
-def bfs(imagen,gx,gy,g):
+	area = altura * ancho
+	
+	for q in range(altura):
+		visitados.append([])
+		for w in range(ancho):
+			#total += 1
+			if pixels[w,q] == (0,0,0) or pixels[w,q] == (255,255,255):
+				visitados[q].append(0)
+				#print "hahahahah"
+			else:
+				visitados[q].append(1)
+	if len(centro) > 0:			
+		for k in range (len(centro)):
+			cx,cy = centro[k]
+			pro.append((cx,cy))
+			while len(pro) > 0 :
+				x = pro[len(pro)-1][0]
+				y = pro[len(pro)-1][1]
+				pro.pop(len(pro)-1)
+				for i in range(-1,2):
+					for j in range(-1,2):
+						if x+j >= 0 and y+i >=0 and x+j <ancho and y+i <altura:
+							if visitados[y+i][x+j] == 0:
+								if i == 0 and j == 0:
+									pass
+								else:
+									if pixels[x+j,y+i] != (0,0,255):
+									#if pixels[x,y][1] == pixels[x+j,y+i][1]:
+										pro.append((x+j,y+i))
+										visitados[y+i][x+j] = 1
+							 #if visitados[y+i][x+j] == 0:
+								# if i == 0 and j == 0:
+								#	 pass
+								# else:
+								#	 if (x+j,y+i) is not earray[k]:
+								#		  pro.append((x+j,y+i))
+								#		  visitados[y+i][x+j] = 1  
+								 #earray[k]
+				pixels[x,y] = (a,b,c)  
+				visitados[y][x]= 1
+				cont += 1    
+				if len(pro) == 0: 
+					print "finalize figura :)"
+					a,b,c = random.randint(1, 255),random.randint(1, 255),random.randint(1, 255)
+
+
+					
+			total.append(cont)
+			cont = 0
+
+
+	draw = ImageDraw.Draw(im)				
+	fuente = ImageFont.truetype('/usr/share/fonts/truetype/ubuntu-font-family/Ubuntu-C.ttf',16) 
+	for i in range (len(centro)):
+		draw.text((centro[i][0], centro[i][1]), 'ellipse: ' + str(i), fill=(0,0,0), font=fuente)
+		print "Ellipse : ",i,"Tiene un porcentaje en la imagen de :",(total[i]*100)/area,"%."
+		for j in range (-10,10):
+			for k in range (-10,10):
+				pixels[centro[i][0]+j,centro[i][1]+k] = (0,0,0)
+								
+	print "termino"	
+	im.save(imagen)
+	return pygame.image.load(imagen)
+
+
+###bfs para ellipse
+### ellipse  metodo
+	
+def ellipse(imagen,gx,gy,g):
 	ancho,altura,pixels,im = cargar(imagen)
 	#ancho1,altura1,pixels1,im1 = cargar(Inombre)
 	pro = []
@@ -500,7 +582,8 @@ def bfs(imagen,gx,gy,g):
 	total = 0
 	cord = []
 	k = 0
-
+	bcenterarray = []
+	ccenterarray = []
 	centerarray = []
 	print "iniciando bfs"
 	for q in range(altura):
@@ -536,9 +619,8 @@ def bfs(imagen,gx,gy,g):
 								visitados[y+i][x+j] = 1
 								
 								
-		#pixels[x,y] = (a,b,c)
-								
-		pixels[x,y] = (255,255,255)
+		#pixels[x,y] = (a,b,c)								
+		#pixels[x,y] = (255,255,255)
 		visitados[y][x]	= 1
 		cont += 1
 		##w es el anchocord((w,q)) , gy[q][w] 
@@ -551,9 +633,8 @@ def bfs(imagen,gx,gy,g):
 			man = len(cord)
 			while i < (len(cord)):
 				hx,hy = cord[i]
-				ver = gy[hy][hx]                                                                                                      
+				ver = gy[hy][hx]                                                                                                     
 				hor = gx[hy][hx]  
-				
 				#if fabs(hor) < 20 or fabs(hy) <70 or (fabs(hor) < 20 and fabs(hy) < 70):
 				#if fabs()
 				if fabs(ver) > 100 or fabs(hor) < 30:
@@ -567,7 +648,7 @@ def bfs(imagen,gx,gy,g):
 			
 			menory =((cord[tam-1][0],cord[tam-1][1]))
                         mayory = ((0,0))
-			
+			i = 0
 			for i in range(len(cord)):
 				if menorx[0] > cord[i][0]:
 					menorx = ((cord[i][0],cord[i][1]))
@@ -585,6 +666,7 @@ def bfs(imagen,gx,gy,g):
 			pos = 0
 			
 			dicci = dict()
+			condicionr = 0
 			for k in range (700):
 				cordxx = []
 				cordyy = []
@@ -594,32 +676,42 @@ def bfs(imagen,gx,gy,g):
 					al2 = random.randint(0, tam-1)
 					hx,hy = cord[al1]
 					hx1,hy1 = cord[al2]
-					m = gy[hy][hx]/gx[hy][hx]
-					m2 = gy[hy1][hx1]/gx[hy1][hx1]
-					if m != 0 and acept == 0 and m < -0.01:
-						acept = 1
+					if gx[hy][hx] != 0 and gx[hy1][hx1] != 0:
+						m = gy[hy][hx]/gx[hy][hx]
+						m2 = gy[hy1][hx1]/gx[hy1][hx1]
+						if m != 0 and acept == 0 and m < -0.01:
+						#if gx[hy][hx] != 0:
+							acept = 1
 						#print "posicion de x :",hx,"posicion de y : ",hy
-						hy2 = hy
-						hx2 = hx
-						m11 = gy[hy][hx]/gx[hy][hx]
-					if m2 >= 1 and pos == 0 and acept != 0:
-						pos = 1
+							hy2 = hy
+							hx2 = hx
+							m11 = gy[hy][hx]/gx[hy][hx]
+							#condicionr = 0
+						if m2 >= 1 and pos == 0 and acept != 0:
+							pos = 1
 						#print "posicion de x :",hx1,"posicion de y : ",hy1
-						m22 = gy[hy1][hx1]/gx[hy1][hx1]
+							m22 = gy[hy1][hx1]/gx[hy1][hx1]
+							break
+					condicionr = condicionr + 1
+					if condicionr == 100:
+						acept = 1
+						pos = 1
+						m11 = 1
+						m22 = 1
 						break
-					
 				#print "primera pendiente : ",m11
-				for i in range (-70,70):
+				condicionr = 0	
+				for i in range (-50,50):
 					my = m11*(hx2+i - hx2) + hy2
 					if hx2+i >= 0 and my >=0 and hx2+i <ancho and my <altura:
-						pixels[hx2+i,my] = (0,255,255)
+						#pixels[hx2+i,my] = (0,255,255)
 						cordxx.append((hx2+i,my))
 		
 				#print "segunda pendiente: ",m22
-				for i in range (-70,70):
+				for i in range (-50,50):
 					my = m22*(hx1+i - hx1) + hy1
 					if hx1+i >= 0 and my >=0 and hx1+i <ancho and my <altura:
-						pixels[hx1+i,my] = (255,255,0)			#my = hx+j
+						#pixels[hx1+i,my] = (255,255,0)			#my = hx+j
 						cordyy.append((hx1+i,my))
 				xxx = 0
 				yyy = 0
@@ -646,8 +738,8 @@ def bfs(imagen,gx,gy,g):
 							if hx2 >= 0 and hy2-kk >=0 and hx2 < ancho and hy2-kk <altura:
 								if pixels[hx2,hy2-(kk)] != (255,255,255):
 								#if hx2 >= 0 and hy2-kk >=0 and hx2 < ancho and hy2-kk <altura:
-									pixels[hx2,hy2-kk] = (255,0,0)
-									#pass
+									#pixels[hx2,hy2-kk] = (255,0,0)
+									pass
 								else:
 									break
 							else:
@@ -656,8 +748,8 @@ def bfs(imagen,gx,gy,g):
 							if hx2 >= 0 and hy2+kk >=0 and hx2 <ancho and hy2+kk <altura:
 								if pixels[hx2,hy2+(kk)] != (255,255,255):
 								#if hx2 >= 0 and hy2+kk >=0 and hx2 <ancho and hy2+kk <altura:
-									pixels[hx2,hy2+kk] = (255,0,0)
-									#pass
+									#pixels[hx2,hy2+kk] = (255,0,0)
+									pass
 								else:
 									break
 							else:
@@ -665,7 +757,7 @@ def bfs(imagen,gx,gy,g):
 						kk = kk + 1		
 					for i in range(-200,200):
 						if xxx+i >= 0 and yyy >=0 and xxx+i <ancho and yyy <altura:
-							pixels[xxx+i,yyy] = (255,0,255)
+							#pixels[xxx+i,yyy] = (255,0,255)
 							if xxx+i > hx2:
 								##acemos la votacion XD
 								if xxx+i in dicci:
@@ -680,22 +772,26 @@ def bfs(imagen,gx,gy,g):
 				cosa = 1
 			else:	
 				pro.append((x,y))
+				#print "valor de x: ",x,"valor de y : ",y
 				a,b,c = random.randint(1, 255),random.randint(1, 255),random.randint(1, 255)
-				cord = []
+				#cord = []
 			#print dicci
 			dic = dicci.items()
-			mayor = dic[0][1]
-			pcx = dic[0][0]
-			for  i in range(len(dic)):
-				if mayor < dic[i][1]:
-					mayor = dic[i][1]
-					pcx = dic[i][0]
-			centerarray.append(pcx)
-			print "punto centr: ",centerarray
-			dicci = dict()
+			if len(dic) > 0:
+				mayor = dic[0][1]
+				pcx = dic[0][0]
+				for  i in range(len(dic)):
+					if mayor < dic[i][1]:
+						mayor = dic[i][1]
+						pcx = dic[i][0]
+			#if mayor < 25:
+			#	print "no es ellipse u circulo"
+				centerarray.append(pcx)
+				#print "punto centr: ",centerarray
+			#dicci = dict()
 	#print dicci(len(dicci)-1)				
 	print "termino"			
-	im.save("bfs.png")
+	#im.save("bfs.png")
 	#im.save("centro.png")
 	ancho1,altura1,pixels1,im1 = cargar("convolu.png")
 	for i in range(len(centerarray)):
@@ -705,29 +801,72 @@ def bfs(imagen,gx,gy,g):
 		suma2 = 0
 		k = 0
 		a = 0
+		
 		while a == 0:
-			if pixels1[x+k,y] == (255,255,255) or pixels1[x-k,y] == (255,255,255):
-				a = 1
-				print "bye bye"
-				break
+			if x+k >= 0 and y >=0 and x+k <ancho and y <altura and x-k >= 0 and x-k < ancho:
+				if pixels1[x+k,y] == (255,255,255) or pixels1[x-k,y] == (255,255,255):
+					a = 1
+					#print "bye bye"
+					break
 			
+				else:
+					suma1 = suma1 + 1
+					suma2 = suma2 + 1
 			else:
-				suma1 = suma1 + 1
-				suma2 = suma2 + 1
-			k = k + 1	
-		foco1 = x + suma1/2
+				break
+			k = k + 1
+			#if k > ancho/4:
+			#	break
+		k = 0	
+		foco1 = x + suma1/2 ##derecho
 		foco2 = x - suma1/2
-		for j in range (-10,10):
-			for g in range (-10,10):
-				pixels1[foco1+j,y+g] = (255,0,0)
-				pixels1[foco2+j,y+g] = (255,0,0)
-				pixels1[x+j,y+g] = (0,255,0)
-		print "foco1 : ",foco1,"foco2: ",foco2
+		radio = x - foco2
+		#print "foco1 : ",foco1,"foco2: ",foco2, "valor de y :",y
+		umbrall = 0
+		
+		for angulo in range (0,360):
+			puntox = x + (2*radio)*cos(angulo)
+                        puntoy = y + radio*sin(angulo)
+			for pumbrall in range (-10,10):
+				if puntox+pumbrall >= 0 and puntoy+pumbrall >=0 and puntox+pumbrall <ancho and puntoy+pumbrall <altura:
+					if pixels1[puntox+pumbrall,puntoy+pumbrall] == (255,255,255):
+						umbrall = umbrall + 1
+					
+		#for umbrally in range (radio,radio):
+			
+		if umbrall > 400:
+			print "si es ellipse creemos "
+			bcenterarray.append([])
+			ccenterarray.append((x,y))
+			btam = len(bcenterarray) - 1
+			for angulo in range (0,360):
+				#print umbrall
+				puntox = x + (2*radio)*cos(angulo)
+				puntoy = y + radio*sin(angulo)
+				if  puntox >= 0 and  puntoy >=0 and  puntox < ancho and  puntoy <altura:
+					bcenterarray[btam].append((puntox,puntoy))
+					for h in range (-3,3):
+						for o in range(-3,3):
+							if  puntox+h >= 0 and  puntoy+o >=0 and  puntox+h < ancho and  puntoy+o <altura:
+								pixels1[puntox+h,puntoy+o] = (0,0,255)
+			for j in range (-10,10):
+				for g in range (-10,10):
+					if foco1+j >= 0 and y+g >=0 and  foco1+j < ancho and  y+g < altura:
+						pass
+						#pixels1[foco1+j,y+g] = (255,0,0)
+					if foco2+j >= 0 and y+g >=0 and  foco2+j < ancho and  y+g < altura:
+						pass
+						#pixels1[foco2+j,y+g] = (255,0,0)
+					if x+j >= 0 and y+g >=0 and  x+j < ancho and  y+g < altura:
+						pass
+						#pixels1[x+j,y+g] = (0,255,0)
+		
+		else:
+			print umbrall
+		umbrall = 0	
+	print "temrine el rollo por fin :)"	
 	im1.save("centro.png")	
-		#suma2 = suma2/2
-	#for i in range(ancho1):
-	#	for j in range(altura1):
-	return pygame.image.load("centro.png")		
+	return pygame.image.load("centro.png"),bcenterarray,ccenterarray	
 	#return pygame.image.load("bfs.png")
 ### bfs metodo
 def chekar(visitados,ancho,altura):
@@ -803,7 +942,7 @@ def proceso(mx,mex,my,mey,cord):
 	
 	return puntos
 
-def bfss(j,i):
+def bfsss(j,i):
 	ancho,altura,pixels,im = cargar(nconvolucion)
 	pro = []
 	pro.append((j,i))
@@ -1015,16 +1154,20 @@ def main(nombreI):
 						grisle = 'normalizacion'
 					if cont == 3:
 						imagen = normalisacion(nconvolucion,mxy) 
-						grisle = 'lineas'
+						grisle = 'ellipse'
 					if cont == 4:
-						imagen = bfs(nconvolucion,gx,gy,mxy) ##para los contornos
+						imagen,earray,centro = ellipse(nconvolucion,gx,gy,mxy) ##para los contornos
                                                 #imagen = lineas(mxy,gx,gy) ##lo mismo de arriba para$
                                         #        grisle = 'cosas de mas'
+						grisle = 'bfs'
                                        # cont = cont + 1
-					if cont == 5:	
+					if cont == 5:
+						cosai = "centro.png"
+						imagen = bfs(cosai,earray,centro)
+					if cont == 6:	
 						#imagen = lineas(mxy,gx,gy)
 						imagen = circulos(gx,gy,45)
-					if cont == 6:
+					if cont == 7:
 						imagen = pygame.image.load(nombreI)
 						cont = 0
 					cont = cont + 1
