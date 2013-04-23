@@ -1116,6 +1116,408 @@ def diferencia(imagen1,imagen2,min,max):
 	return pygame.image.load(nimagen)	##enviamos imagenes cargadas
 
 #def normalizacion():
+def ollos(imagen):
+	ancho,altura,pixels,im = cargar(imagen)
+	ancho1,altura1,pixels1,im1 = cargar(imagen)
+		
+	histogramah = []
+	histogramav = []
+	suma = 0
+	promh = 0
+	promv = 0
+	##pixels [ancho,largo]
+	# pixels[i,j]
+	##horizontal
+	for i in range(altura):
+		suma = 0
+		for j in range(ancho):
+			pix = pixels[j,i][1]
+			suma += pix
+		histogramah.append(suma)
+	##horizontal
+	##vartical	
+	for i in range (ancho):
+		suma = 0
+		for j in range (altura):
+			pix = pixels[i,j][1]
+			suma += pix 
+		histogramav.append(suma)
+
+	##vertical	
+	suma = 0
+	for i in range (len(histogramah)):
+		suma += histogramah[i]
+	promh = suma/(len(histogramah))
+
+	suma = 0 
+	for i in range (len(histogramav)):
+		suma += histogramav[i]
+	promv = suma/(len(histogramav))
+	
+	print promh
+	print promv
+	
+	#controlador = 0
+
+	
+	anterior = histogramah[0]
+	for i in range (len(histogramah)-1):
+		sigue = histogramah[i+1]
+		if anterior > histogramah[i] < sigue and histogramah[i] < promh-10:
+			for j in range (ancho):
+				pixels1[j,i] = (0,0,255)
+		anterior = histogramah[i]		
+
+	anterior = histogramav[0]	
+	for i in range (len(histogramav)-1):
+		sigue = histogramav[i+1]
+                if anterior > histogramav[i] < sigue and histogramav[i] < promv-10:
+                        for j in range (altura):
+                                pixels1[i,j] = (255,0,255)
+                anterior = histogramav[i]
+
+
+	
+	#print histogramah
+	im1.save("lineas.png")	
+	
+	pos = []
+	
+	anterior = histogramah[0]
+	anterior1 = histogramav[0]
+	for i in range (len(histogramah)-1):
+		sigue = histogramah[i+1]
+
+                if anterior > histogramah[i] < sigue and histogramah[i] < promh-20:
+			for j in range (len(histogramav)-1):
+				 sigue1 = histogramav[j+1]
+				 if anterior1 > histogramav[j] < sigue1 and histogramav[j] < promv-20:
+					 pixels[j,i] = (255,0,255)
+					 pos.append((j,i))
+				 anterior1 = histogramav[j]
+		anterior = histogramah[i]			 
+
+
+	im.save("agujeros.png")
+	return pygame.image.load("agujeros.png"),pos
+
+
+###bfs para los ollos
+def pintoyos(imagen,pos):
+	ancho,altura,pixels,im = cargar(imagen)
+	pro = []
+	pro.append((0,0))
+	visitados = []
+	pintar = []
+	visitados = []
+	cont = 1
+	total = 0
+	cord = []
+	
+	cx = 0
+	cy = 0
+	actma = 0
+	lisc = []
+	lisc.append((0,0))
+	controlador = 0
+	lugar = 0
+	
+
+	#draw = ImageDraw.Draw(im)
+	#fuente = ImageFont.truetype('/usr/share/fonts/truetype/ubuntu-font-family/Ubuntu-C.ttf',40)
+	a,b,c = random.randint(1, 255),random.randint(1, 255),random.randint(1, 255)
+	print "iniciando bfs"
+	'''
+	for q in range(altura):
+		visitados.append([])
+		for w in range(ancho):
+			total += 1
+			if pixels[w,q] == (0,0,0):
+				visitados[q].append(0)
+			else:
+				visitados[q].append(1)
+
+	while len(pro) > 0:
+		x = pro[len(pro)-1][0]
+		y = pro[len(pro)-1][1]
+		pro.pop(len(pro)-1)
+		for i in range(-1,2):
+			for j in range(-1,2):
+				if x+j >= 0 and y+i >=0 and x+j <ancho and y+i <altura:
+					if visitados[y+i][x+j] == 0:
+				#if pixels[x+j,y+i] == (0,0,0):
+						if i == 0 and j == 0:
+							cosa = 0
+						else:
+							if pixels[x,y][1] == pixels[x+j,y+i][1]:
+								pro.append((x+j,y+i))
+								visitados[y+i][x+j] = 1
+						
+						
+		#pixels[x,y] = (a,b,c)
+		visitados[y][x]= 1
+		cont += 1
+		if len(pro) == 0:	
+			y,x = chekar(visitados,ancho,altura)
+			prom = (cont*100)/(total)
+			if actma == 0:
+				actma = prom
+				print "prmo : ",actma
+                                print "punto: ",lisc[controlador]
+			if actma < prom:
+				actma = prom
+				print "prom",actma
+				print "punto: ",lisc[controlador]
+				lugar = controlador
+			#print "Porcentaje del objeto: ",prom,"%"
+			cont = 0
+			if x == 0 and y == 0:
+				cosa = 1
+			else:
+				lisc.append((x,y))
+				controlador + 1
+				pro.append((x,y))
+				a,b,c = random.randint(1, 255),random.randint(1, 255),random.randint(1, 255)
+		
+	###################################################################################################################
+				
+	'''
+	'''
+	print "iniciando el otro rollo"			
+	visitados =  []
+	pro = []
+	pro.append((lisc[lugar][0],lisc[lugar][1]))
+	print "iniciando bfs"
+        for q in range(altura):
+                visitados.append([])
+                for w in range(ancho):
+                        total += 1
+                        if pixels[w,q] == (0,0,0):
+                                visitados[q].append(0)
+                        else:
+                                visitados[q].append(1)
+				
+        while len(pro) > 0:
+                x = pro[len(pro)-1][0]
+                y = pro[len(pro)-1][1]
+                pro.pop(len(pro)-1)
+                for i in range(-1,2):
+                        for j in range(-1,2):
+                                if x+j >= 0 and y+i >=0 and x+j <ancho and y+i <altura:
+                                        if visitados[y+i][x+j] == 0:
+                                #if pixels[x+j,y+i] == (0,0,0):                                                                                      
+                                                if i == 0 and j == 0:
+                                                        cosa = 0
+                                                else:
+                                                        if pixels[x,y][1] == pixels[x+j,y+i][1]:
+                                                                pro.append((x+j,y+i))
+								visitados[y+i][x+j] = 1
+								
+                pixels[x,y] = (255,0,255) 
+                visitados[y][x]= 1
+	print "termino el otro rollo"										    
+	
+	#visitados[y][x]= 1
+	#cont += 1
+	'''
+	################################################################################################################## 
+	pro = []
+	visitados = []
+	print "Contando posibles Agujeros"
+	for q in range(altura):
+                visitados.append([])
+                for w in range(ancho):
+                        total += 1
+			if pixels[w,q] == (0,0,0):
+				visitados[q].append(0)
+			else:
+                                visitados[q].append(1)
+				
+	#pro.append((pos[0][0],pos[0][1]))			
+	print "valor de llitos: ",len(pos)
+	cambio = 0
+	ancho1,altura1,pixels1,im1 = cargar("1.JPG")
+		
+	while len(pos) > 0:
+		pro.append((pos[0][0],pos[0][1]))
+		pos.pop(0)
+		controlador = 0
+		contador = 0
+		while len(pro) > 0:
+			x,y = pro[0][0],pro[0][1]
+			pro.pop(0)
+			for i in range(-2,3):                                                                                                     
+				for j in range(-2,3):
+					if x+j >= 0 and y+i >=0 and x+j <ancho and y+i <altura:                     
+						if visitados[y+i][x+j] == 0:
+							visitados[y+i][x+j] = 1
+							pro.append((x+j,y+i))
+							acept,borror = buscar(pos, (x+j,y+i))
+							if  acept == 1:
+								controlador = 0
+								pos.pop(borror)
+								pass
+							else:
+								controlador += 1
+					if controlador == 200:
+						for k in range(len(pro)):
+							x,y = pro[k][0],pro[k][1]
+							if x >= 0 and y >=0 and x <ancho and y <altura:
+								visitados[y][x] = 1
+								pixels[x,y] = (255,0,255)  
+						pro = []
+						constancia = 1
+						controlador = 0
+						#print "no es y ya"
+						break
+			
+			pixels[x,y] = (255,0,255)
+			contador += 1
+		#cambio += 1	
+		#print	"cambio ",cambio
+
+
+	im.save("ollos.png")
+	
+	###parte final#####################################################
+	colorear = []
+	ancho,altura,pixels,im = cargar("ollos.png")
+	pro = []
+	visitados = []
+	tollos = 1
+	contblanco= 0
+	contnegro = 0
+	contadorlinea = 0
+	aollo = 0
+	print "checando Agujeros"
+	for q in range(altura):
+                visitados.append([])
+                for w in range(ancho):
+                        total += 1
+                        if pixels[w,q] == (255,0,255):
+                                visitados[q].append(0)
+                        else:
+                                visitados[q].append(1)
+
+	a,b,c = random.randint(1, 255),random.randint(1, 255),random.randint(1, 255)
+	pro.append((0,0))
+	while len(pro) > 0:                                                                                                                         
+		x = pro[len(pro)-1][0]    
+                y = pro[len(pro)-1][1]                                                                                                               
+		pro.pop(len(pro)-1)
+		for i in range(-1,2): 
+			for j in range(-1,2):
+				if x+j >= 0 and y+i >=0 and x+j <ancho and y+i <altura:
+					if pixels[x+j,y+i] == (255,255,255):
+						contblanco += 1
+						contadorlinea += 1
+					#else:						
+					if pixels[x+j,y+i] == (0,0,0):
+						contnegro += 1
+						contadorlinea += 1
+					#contadorlinea += 1		
+					if visitados[y+i][x+j] == 0:
+                                                if i == 0 and j == 0:                                                                                
+                                                        cosa = 0                                                                                     
+                                                else:
+							if pixels[x,y][1] == pixels[x+j,y+i][1]:                                                     
+                                                                pro.append((x+j,y+i))                                                                
+                                                                visitados[y+i][x+j] = 1                                                              
+								
+								
+		#pixels[x,y] = (a,b,c)
+		colorear.append((x,y))						
+                visitados[y][x]= 1                                                                                                                   
+                cont += 1                                            			
+		if len(pro) == 0:   
+			promedio = float(contblanco) / float(contadorlinea)
+			#print "aaa: ",promedio
+			#if promedio > 0.30:
+			if promedio > 0.60 and promedio < 0.90:
+				#print "promedio ",promedio
+				#print "blanco: ",contblanco
+				#print "linea: ",contadorlinea
+				mayorx = colorear[len(colorear)-1]
+				menorx = colorear[0]
+				
+				mayory = colorear[len(colorear)-1]
+				menory = colorear[0]
+				cxm = 0
+				cym = 0
+				
+				cyn = 0
+				cxn = 0
+				#draw.text((centro[i][0], centro[i][1]), 'ellipse: ' + str(i), fill=(0,0,0), font=fuente)
+				for i in range(len(colorear)):
+					x,y = colorear[i]
+					if mayorx[0] < x:
+						mayorx = colorear[i]
+					if menorx[0] > x:
+						menorx = colorear[i]
+					if mayory[1] < y:
+						mayory = colorear[i]
+                                        if menory[1] > y:
+						menory = colorear[i]
+					
+					cx = (mayorx[0] + menorx[0])/2
+					cy = (mayory[1] + menory[1])/2
+					#pixels[x,y] = (a,b,c)
+					#pixels1[x,y] = (255,0,255)
+					aollo += 1 
+				area = altura*ancho	
+				porcentaje =  (float(aollo)/float(area))*100.0
+				if porcentaje > 1:
+					#x,y = colorear[i]
+					for p in range(len(colorear)):
+						x,y = colorear[p]
+						pixels1[x,y] = (255,0,255) 
+					aollo += 1	
+					#print "Agujero ",tollos,"porcentaje del agujero",(float(aollo)/float(area))*100.0
+					draw = ImageDraw.Draw(im1)
+					fuente = ImageFont.truetype('/usr/share/fonts/truetype/ubuntu-font-family/Ubuntu-C.ttf',20) 	
+					draw.text((cx, cy), 'Agujero: ' + str(tollos), fill=(255,0,0), font=fuente)  
+					for l in range(-2,2):
+						for u in range (-2,2):
+							if cx+u >= 0 and cy+l >=0 and cx+u <ancho and cy+l <altura:
+								pixels1[cx+u,cy+l] = (255,255,0)
+					area = ancho*altura		
+					print "Agujero ",tollos,"porcentaje del agujero",(float(aollo)/float(area))*100.0
+				
+					tollos += 1
+				
+				#draw.text((colorear[0][0], colorear[0][1]), 'ollo: ', fill=(255,0,0), font=fuente)  	
+			aollo = 0	
+			contblanco= 0
+			contnegro = 0
+			contadorlinea = 0
+			colorear = []
+			promedio = 0
+			y,x = chekar(visitados,ancho,altura)       
+			if x == 0 and y == 0: 				
+                                cosa = 1   
+                        else:
+                                pro.append((x,y))  
+                                a,b,c = random.randint(1, 255),random.randint(1, 255),random.randint(1, 255)     
+			contblanco= 0
+			contnegro = 0
+			contadorlinea = 0
+		
+	im1.save("final.png")		
+	im.save("ollos.png")
+	print "termino"
+	return pygame.image.load("final.png")	
+###bfs para los ollos
+###solo para buscar elementos
+
+def buscar(lista, elemento):
+	for i in range(len(lista)):
+		if lista[i] == elemento:
+			return 1,i
+	return 0,0	
+
+## solo para buscar elemtos
+###
+
 
 
 ##funcion principla del programa
@@ -1145,9 +1547,17 @@ def main(nombreI):
 					##la tercera condicion es para aplicar la diferencia para que sala borrosa la imagen
 					if cont == 0:
 						imagen = escala(nombreI) ##hace llamar a la funcion de escala y garda el resultado
-						grisle = 'Filtro'
+						grisle = 'ollos'
+						imagen,pos = ollos(ngrises)
+						imagen = filtro(ngrises)
+						imagen,gx,gy,mxy = convolucion(nfiltro)
+						imagen = normalisacion(nconvolucion,mxy)
+						imagen = pintoyos(nconvolucion,pos)
+
+						
 					if cont == 1:
 						imagen = filtro(ngrises) ##lo mismo que arriba pero para filtro
+						#imagen,pos = ollos(ngrises)
 						grisle = 'convolucion'
 					if cont == 2:
 						imagen,gx,gy,mxy = convolucion(nfiltro) ##lo mismo de arriba para difucion
