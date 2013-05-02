@@ -1013,10 +1013,12 @@ def convolucion(imagen):
 			gx[i].append(sumax) ##guardamos los gradientes en x
 			gy[i].append(sumay) ##guardamos los gradientes en y 
 			mxy[i].append(r)    ##guardamos el resultado de los gradientes en x e y
+			#r = sumay
 			if r < 0:
 				r = 0
 			if r > 255:
 				r = 255	
+			
 			npixels[j, i] = (r,r,r)
 	nueva.save(nconvolucion)		
 	tiempof = time.time()
@@ -1197,7 +1199,19 @@ def ollos(imagen):
 				 anterior1 = histogramav[j]
 		anterior = histogramah[i]			 
 
+	archivoh=open('datosh.txt','w')
+	archivov=open('datosv.txt','w')
+	
 
+	for i in range (len(histogramah)):
+		    archivoh.write(''+ str(i) +' '+str(histogramah[i])+'\n')
+
+	for i in range (len(histogramav)):
+                    archivov.write(''+ str(i) +' '+str(histogramav[i])+'\n')
+	    
+
+	archivoh.close()
+	archivov.close()
 	im.save("agujeros.png")
 	return pygame.image.load("agujeros.png"),pos
 
@@ -1227,62 +1241,7 @@ def pintoyos(imagen,pos):
 	#fuente = ImageFont.truetype('/usr/share/fonts/truetype/ubuntu-font-family/Ubuntu-C.ttf',40)
 	a,b,c = random.randint(1, 255),random.randint(1, 255),random.randint(1, 255)
 	print "iniciando bfs"
-	'''
-	for q in range(altura):
-		visitados.append([])
-		for w in range(ancho):
-			total += 1
-			if pixels[w,q] == (0,0,0):
-				visitados[q].append(0)
-			else:
-				visitados[q].append(1)
 
-	while len(pro) > 0:
-		x = pro[len(pro)-1][0]
-		y = pro[len(pro)-1][1]
-		pro.pop(len(pro)-1)
-		for i in range(-1,2):
-			for j in range(-1,2):
-				if x+j >= 0 and y+i >=0 and x+j <ancho and y+i <altura:
-					if visitados[y+i][x+j] == 0:
-				#if pixels[x+j,y+i] == (0,0,0):
-						if i == 0 and j == 0:
-							cosa = 0
-						else:
-							if pixels[x,y][1] == pixels[x+j,y+i][1]:
-								pro.append((x+j,y+i))
-								visitados[y+i][x+j] = 1
-						
-						
-		#pixels[x,y] = (a,b,c)
-		visitados[y][x]= 1
-		cont += 1
-		if len(pro) == 0:	
-			y,x = chekar(visitados,ancho,altura)
-			prom = (cont*100)/(total)
-			if actma == 0:
-				actma = prom
-				print "prmo : ",actma
-                                print "punto: ",lisc[controlador]
-			if actma < prom:
-				actma = prom
-				print "prom",actma
-				print "punto: ",lisc[controlador]
-				lugar = controlador
-			#print "Porcentaje del objeto: ",prom,"%"
-			cont = 0
-			if x == 0 and y == 0:
-				cosa = 1
-			else:
-				lisc.append((x,y))
-				controlador + 1
-				pro.append((x,y))
-				a,b,c = random.randint(1, 255),random.randint(1, 255),random.randint(1, 255)
-		
-	###################################################################################################################
-				
-	'''
-	'''
 	print "iniciando el otro rollo"			
 	visitados =  []
 	pro = []
@@ -1319,7 +1278,7 @@ def pintoyos(imagen,pos):
 	
 	#visitados[y][x]= 1
 	#cont += 1
-	'''
+
 	################################################################################################################## 
 	pro = []
 	visitados = []
@@ -1519,6 +1478,276 @@ def buscar(lista, elemento):
 ###
 
 
+def comprobacion(imagen,gx,gy):
+	ancho,altura,pixels,im = cargar(imagen)
+	pro = []
+	pro.append((0,0))
+	visitados = []
+	pintar = []
+	visitados = []
+	cont = 1
+	total = 0
+	cord = []
+	cond = 0
+	print "iniciando bfs"
+	a,b,c = random.randint(1, 255),random.randint(1, 255),random.randint(1, 255)
+	for q in range(altura):
+		visitados.append([])
+		for w in range(ancho):
+			total += 1
+			if pixels[w,q] == (255,255,255):
+				visitados[q].append(0)
+				if cond == 0:
+                                        cond = 1
+                                        pro.append((w,q))
+
+			else:
+				visitados[q].append(1)
+	while len(pro) > 0:
+		x = pro[len(pro)-1][0]
+		y = pro[len(pro)-1][1]
+		pro.pop(len(pro)-1)
+		for i in range(-1,2):
+			for j in range(-1,2):
+				if x+j >= 0 and y+i >=0 and x+j <ancho and y+i <altura:
+					if visitados[y+i][x+j] == 0:
+						if i == 0 and j == 0:
+							cosa = 0
+						else:
+							if pixels[x,y][1] == pixels[x+j,y+i][1]:
+								pro.append((x+j,y+i))
+						visitados[y+i][x+j] = 1
+						
+						
+		pixels[x,y] = (a,b,c)
+		visitados[y][x]= 1
+		cont += 1
+		cord.append((x,y))
+		if len(pro) == 0:
+			
+			formas(imagen,gx,gy,cord)
+			y,x = chekar(visitados,ancho,altura)
+			#prom = (cont*100)/(total)
+			#print "Porcentaje del objeto: ",prom,"%"
+			cont = 0
+			cord = []
+			if x == 0 and y == 0:
+				cosa = 1
+			else:
+				pro.append((x,y))
+				a,b,c = random.randint(1, 255),random.randint(1, 255),random.randint(1, 255)
+		
+
+				
+	#im.save("bfs.png")
+	return pygame.image.load(imagen)
+
+
+
+#############################################################################################################################
+###########################################################deteccion de formas #################################################
+def formas(imagen,gx,gy,cord):
+	ancho,altura,pixels,im = cargar(imagen)
+	pro = []
+	#pro.append((0,0))
+	visitados = []
+	pintar = []
+	visitados = []
+	cont = 1
+	total = 0
+	cordenadas = []
+	a,b,c = random.randint(1, 255),random.randint(1, 255),random.randint(1, 255)		
+	cond = 0
+	print "iniciando verificacion:"	
+	yep = 0
+	print len(cord)	
+	draw = ImageDraw.Draw(im)
+	for q in range(altura):
+		visitados.append([])
+		for w in range(ancho):						
+			total += 1
+			yep = 0						
+			try:
+				l = cord.index((w,q))
+				visitados[q].append(0)
+				if cond == 0:
+                                        cond = 1
+                                        pro.append((w,q))
+			except:
+				visitados[q].append(1)
+
+			
+			#if pixels[w,q] == (255,255,255):				
+			#	visitados[q].append(0)
+			#	if cond == 0:
+			#		cond = 1
+			#		pro.append((w,q))
+			#else:
+			#	visitados[q].append(1)
+	
+	tras = []
+	kk = 0
+	print "todo bien"
+#	for i in range (len(cord)):
+#		for j in range(len(visitados)):			
+	while len(pro) > 0:
+		x = pro[len(pro)-1][0]
+		y = pro[len(pro)-1][1]
+		pro.pop(len(pro)-1)
+		tras.append([])
+
+		
+		###nueva pendiente
+		if gx[y][x] != 0:
+			m = gy[y][x]/gx[y][x]
+		else:
+			m = gy[y][x]/1
+		##nueva pendiente	
+		for i in range(-1,2):
+			for j in range(-1,2):
+				if x+j >= 0 and y+i >=0 and x+j <ancho and y+i <altura:
+					if visitados[y+i][x+j] == 0:
+						#m = gy[hy][hx]/gx[hy][hx]						
+						if i == 0 and j == 0: ##para no tomar el mismo valor
+							cosa = 0
+						else:
+							if gx[y+i][x+j] != 0:
+								m2 = gy[y+i][x+j]/gx[y+i][x+j]
+							else:
+								m2 = gy[y+i][x+j]/1
+							if pixels[x,y][1] == pixels[x+j,y+i][1]: ##siga siendo borde
+								if m-3 <= m2 <= m+3:
+								#if m == m2:
+									pro.append((x+j,y+i))
+						visitados[y+i][x+j] = 1
+												
+		#pixels[x,y] = (a,b,c)
+		visitados[y][x]= 1
+		cont += 1
+		cordenadas.append((x,y))
+		tras[kk].append((x,y))
+		#yep += 1
+		#kk += 1		
+		if len(pro) == 0:
+			kk = kk + 1
+			cont = 0
+			cond = 0
+			k = 0				
+			y,x = chekar(visitados,ancho,altura)
+			if x == 0 and y == 0:
+				cosa = 1
+				cordenadas = []
+			else:
+				cordenadas = []
+				pro.append((x,y))
+				a,b,c = random.randint(1, 255),random.randint(1, 255),random.randint(1, 255)
+
+	#ancho1,altura1,pixels1,im1 = cargar("ev.jpeg")
+	##chekamos linea por linea			
+	cosa = []
+	medio = []
+	for i in range (len(tras)-1):
+		print len(tras[i])
+		if len(tras[i]) > 100:
+			#print len(tras[i])
+			puntosmedios = []
+			#medio = []
+			menorx,menory = tras[i][0]
+			mayorx,mayory = tras[i][len(tras[i])-1]
+			lines = []
+			#x,y = tras[i][j]
+			#cosa.append((x,y))
+			##calculamos puntos medios
+			for j in range (len(tras[i])):
+				yep += 1 ## eso es para le porcentaje usados mas adelante
+				x,y = tras[i][j]
+				cosa.append((x,y))
+				if menorx > x:
+					menorx,menory = tras[i][j]
+				if mayorx < x:
+					mayorx,mayory = tras[i][j]
+			#cosa.append((x,y))		
+			mediox,medioy = ((mayorx+menorx)/2,(mayory+menory)/2) ##calculamos medio
+
+			puntosmedios.append((mediox,medioy)) ##los agregamos a una lista para uso posterior
+
+			lines.append((menorx,menory)) ##estos es para juntar y dibujar
+			lines.append((mayorx,mayory)) ##esto es para juntar y dibujar
+			
+			medio.append((mayorx,mayory,menorx,menory)) ##esto es para calcular el centro
+
+			#draw = ImageDraw.Draw(im)
+			draw.line(lines, fill=500) ##dibujamos lineas
+			##aqui dibujamos laas lienas
+			##dibujamos puntos medios
+			for j in range (-10,11):
+				for k in range (-10,11):
+					pixels[mediox+k,medioy+j] = (255,255,0)
+
+	##aqui calculamos centro de enmedio		
+	menorx,menory = cosa[0]
+	mayorx,mayory = cosa[len(cosa)-1]	
+	for i in range(len(cosa)):
+		x,y = cosa[i]
+		if x > mayorx:
+			mayorx = x
+		if x < menorx:
+			menorx = x
+
+		if y > mayory:
+			mayory = y
+		if y < menory:
+			menory = y
+
+			
+	centrox,centroy = ((mayorx+menorx)/2,(mayory+menory)/2)		
+	for i in range (-10,10):
+		for j in range (-10,10):
+			pixels[centrox+i,centroy+j] = (255,0,255)
+			
+
+
+	###movemos todo el mugrero hajshajhsjahsjahjsa de aqui es para mover las lineas
+	hor = 0
+	ver = 0
+	print "total de lineas: ",len(medio)
+	for i in range (len(medio)):
+		mx,my,mex,mey = medio[i]
+		mediox,medioy = ((mx+mex)/2,(my+mey)/2)
+		hor = 0
+		ver = 0
+		lines = []
+
+		diferenciax = centrox - mediox
+		diferenciay = centroy - medioy
+		mx = mx + diferenciax
+		my = my + diferenciay
+		mex = mex + diferenciax
+		mey = mey + diferenciay
+		print "cordenadas = ",(mx,my,mex,mey)
+		#lines = []	
+		lines.append((mex,mey))
+		lines.append((mx,my))		
+		draw.line(lines, fill=100)
+	
+	porcentaje = int(float(yep*100)/float(len(cord)))
+	print "porcentaje hacer figura: ",porcentaje
+	fuente = ImageFont.truetype('/usr/share/fonts/truetype/ubuntu-font-family/Ubuntu-C.ttf',20)
+	draw.text((centrox, centroy), 'Porcen Poligono: ' + str(porcentaje)+'%', fill=(255,0,0), font=fuente)
+
+	##movemos todo el mugrero ###		
+	#im.save("bfs.png")
+	im.save(imagen)
+	#im1.save("ev.jpeg")
+	print "termino"
+	return
+	#return pygame.image.load("bfs.png")
+	#a,b,c = random.randint(1, 255),random.randint(1, 255),random.randint(1, 255)   
+
+
+
+
+###########################################################deteccion de formas ##################################################
 
 ##funcion principla del programa
 def main(nombreI):
@@ -1547,12 +1776,14 @@ def main(nombreI):
 					##la tercera condicion es para aplicar la diferencia para que sala borrosa la imagen
 					if cont == 0:
 						imagen = escala(nombreI) ##hace llamar a la funcion de escala y garda el resultado
-						grisle = 'ollos'
-						imagen,pos = ollos(ngrises)
+						grisle = 'probando'
+						#imagen,pos = ollos(ngrises)
 						imagen = filtro(ngrises)
 						imagen,gx,gy,mxy = convolucion(nfiltro)
 						imagen = normalisacion(nconvolucion,mxy)
-						imagen = pintoyos(nconvolucion,pos)
+						imagen = comprobacion(nconvolucion,gx,gy)
+						#imagen = formas(nconvolucion,gx,gy,mxy)
+						#imagen = pintoyos(nconvolucion,pos)
 
 						
 					if cont == 1:
